@@ -1,7 +1,7 @@
 # Corona Daily Deaths Animation
 
-Repository of the latest animation showing confirmed daily deaths worldwide and per country relative to each's worst day. <br><br>
-* You can find more background on the idea, pros and cons of this visualization and some general thoughts on how to design visualizations dealing with COVID-19 on [my blog](https://cedricscherer.netlify.com/2020/03/31/corona-covid-19-death-tolls-worst-day-so-far/).<br>
+Repository of the latest animation showing confirmed daily deaths worldwide and per country relative to each's worst day. <br>
+* You can find more background on the idea, pros and cons of this visualization and some general thoughts on how to design visualizations dealing with COVID-19 on [my blog](https://cedricscherer.netlify.com/2020/03/31/corona-covid-19-death-tolls-worst-day-so-far/).<br><br>
 * I created the visualizations with the help of the programming language `R` using the graphic library `ggplot2` and the `magick` package.<br><br>
 
 ## Countries ranked by day of first confirmed death
