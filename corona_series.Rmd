@@ -107,8 +107,17 @@ df_corona_fct <-
 first_day <- min(df_corona_fct$yday)
 latest_day <- max(df_corona_fct$yday)
 n_countries <- n_distinct(df_corona_fct$country)
-dates <- c(23, 32, 46, 61, 75, 90)
-dates_labs <- c("Jan 23", "Feb 1", "Feb 15", "Mar 1", "Mar 15", "Mar 30")
+
+dates <-
+  df_corona_fct %>% 
+  filter(date %in% c(min(date, na.rm = T),
+                     ymd("2020-02-01"),
+                     ymd("2020-02-15"),
+                     ymd("2020-03-01"),
+                     ymd("2020-03-15"),
+                     max(date, na.rm = T))) %>% 
+  group_by(date, yday) %>% 
+  summarize(label = unique(glue::glue("{month(date, label = T)} {day(date)}")))
 ```
 
 ```{r animation-ranked-by-death-toll}
@@ -169,8 +178,8 @@ for(i in first_day:latest_day) {
       scale_y_continuous(expand = c(.001, 0.01),
                          limits = c(19.1, latest_day + .5),
                          sec.axis = dup_axis(),
-                         breaks = dates,
-                         labels = dates_labs) + 
+                         breaks = dates$yday,
+                         labels = dates$label) + 
       rcartocolor::scale_color_carto_c(palette = "PinkYl", 
                                        na.value = "#badad0",
                                        limits = c(0, 1),
@@ -204,7 +213,7 @@ for(i in first_day:latest_day) {
                 hjust = .5)
   
   ggsave(here::here("2020_Corona", "plots", "series_sum", glue::glue("corona_sum_yday_{i}.pdf")),
-         width = 18.2, height = 12.2, device = cairo_pdf)
+         width = 18.4, height = 12.4, device = cairo_pdf)
   
   if(i == latest_day) {
     g_latest <- 
@@ -231,7 +240,7 @@ for(i in first_day:latest_day) {
                   hjust = .5)
     
     ggsave(here::here("2020_Corona", "plots", "series_sum", glue::glue("corona_sum_yday_latest.pdf")),
-           width = 18.2, height = 12.2, device = cairo_pdf)
+           width = 18.4, height = 12.4, device = cairo_pdf)
   }
 }
 
@@ -245,7 +254,7 @@ for(pdf in pdfs) {
 }
 
 ## convert png's to gif
-system("magick.exe -delay 40 *.png -delay 700 *latest_1.png -loop 0 corona_series_sum.gif")
+system("magick.exe -delay 40 *.png -delay 800 *latest_1.png -loop 0 corona_sum_latest.gif")
 ```
 
 
@@ -302,8 +311,8 @@ for(i in first_day:latest_day) {
       scale_y_continuous(expand = c(.001, 0.01),
                          limits = c(19.1, latest_day + .5),
                          sec.axis = dup_axis(),
-                         breaks = dates,
-                         labels = dates_labs) + 
+                         breaks = dates$yday,
+                         labels = dates$label) + 
       rcartocolor::scale_color_carto_c(palette = "PinkYl", 
                                        na.value = "#badad0",
                                        limits = c(0, 1),
@@ -337,7 +346,7 @@ for(i in first_day:latest_day) {
                   hjust = .5)
   
   ggsave(here::here("2020_Corona", "plots", "series_begin", glue::glue("corona_begin_yday_{i}.pdf")),
-         width = 18.2, height = 12.2, device = cairo_pdf)
+         width = 18.4, height = 12.4, device = cairo_pdf)
   
   if(i == latest_day) {
     g_latest <- 
@@ -364,7 +373,7 @@ for(i in first_day:latest_day) {
                   hjust = .5)
     
     ggsave(here::here("2020_Corona", "plots", "series_begin", glue::glue("corona_begin_yday_latest.pdf")),
-           width = 18.2, height = 12.2, device = cairo_pdf)
+           width = 18.4, height = 12.4, device = cairo_pdf)
   }
 }
 
@@ -379,6 +388,6 @@ for(pdf in pdfs) {
 }
 
 ## convert png's to gif
-system("magick.exe -delay 40 *.png -delay 700 *latest_1.png -loop 0 corona_series_begin.gif")
+system("magick.exe -delay 40 *.png -delay 800 *latest_1.png -loop 0 corona_begin_latest.gif")
 ```
 
