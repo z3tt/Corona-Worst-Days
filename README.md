@@ -6,11 +6,17 @@ The visualizations were created in the programming language `R` using the graphi
 ## Countries ranked by day of first confirmed death
 
 ![./plots/corona_begin_latest.gif](https://github.com/Z3tt/Corona-Daily-Deaths-Animation/raw/master/plots/corona_begin_latest.gif)<br><br>
-![./plots/corona_begin_yday_latest_1.png](https://raw.githubusercontent.com/Z3tt/Corona-Daily-Deaths-Animation/master/plots/corona_begin_yday_latest_1.png)<br><br>
+
 
 ## Countries ranked by total number of confirmed deaths
 
 ![./plots/corona_sum_latest.gif](https://github.com/Z3tt/Corona-Daily-Deaths-Animation/raw/master/plots/corona_sum_latest.gif)<br><br>
+
+***
+
+### Static versions
+
+![./plots/corona_begin_yday_latest_1.png](https://raw.githubusercontent.com/Z3tt/Corona-Daily-Deaths-Animation/master/plots/corona_begin_yday_latest_1.png)<br><br>
 ![./plots/corona_sum_yday_latest_1.png](https://raw.githubusercontent.com/Z3tt/Corona-Daily-Deaths-Animation/master/plots/corona_sum_yday_latest_1.png)<br><br>
 
 ***
