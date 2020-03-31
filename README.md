@@ -1,8 +1,19 @@
 # Corona Daily Deaths Animation
- Repository of the latest animation showing confirmed daily deaths worldwide and per country relative to each's worst day.
 
-Visualization were created in the programming language `R` using the graphic library `ggplot2` and the `magick` package.
- 
+Repository of the latest animation showing confirmed daily deaths worldwide and per country relative to each's worst day.
+
+### Countries ranked by day of first confirmed death
+
+![./plots/corona_begin_latest.gif](hhttps://raw.githubusercontent.com/Z3tt/Corona-Daily-Deaths-Animation/master/plots/corona_begin_latest.gif)<br>
+![./plots/corona_begin_latest.png](hhttps://raw.githubusercontent.com/Z3tt/Corona-Daily-Deaths-Animation/master/plots/corona_begin_latest.png)<br>
+
+### Countries ranked by total number of confirmed deaths
+
+![./plots/corona_sum_latest.gif](hhttps://raw.githubusercontent.com/Z3tt/Corona-Daily-Deaths-Animation/master/plots/corona_sum_latest.gif)<br>
+![./plots/corona_sum_latest.png](hhttps://raw.githubusercontent.com/Z3tt/Corona-Daily-Deaths-Animation/master/plots/corona_sum_latest.png)<br>
+
+The visualizations were created in the programming language `R` using the graphic library `ggplot2` and the `magick` package.
+
  ***
 
  #### Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
