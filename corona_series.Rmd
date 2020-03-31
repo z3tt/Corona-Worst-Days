@@ -212,7 +212,7 @@ for(i in first_day:latest_day) {
                 size = 1.9,
                 hjust = .5)
   
-  ggsave(here::here("2020_Corona", "plots", "series_sum", glue::glue("corona_sum_yday_{i}.pdf")),
+  ggsave(here::here("plots", "series_sum", glue::glue("corona_sum_yday_{i}.pdf")),
          width = 18.4, height = 12.4, device = cairo_pdf)
   
   if(i == latest_day) {
@@ -239,17 +239,17 @@ for(i in first_day:latest_day) {
                   size = 1.9,
                   hjust = .5)
     
-    ggsave(here::here("2020_Corona", "plots", "series_sum", glue::glue("corona_sum_yday_latest.pdf")),
+    ggsave(here::here("plots", "series_sum", glue::glue("corona_sum_yday_latest.pdf")),
            width = 18.4, height = 12.4, device = cairo_pdf)
   }
 }
 
 ## convert pdf's to png's
-setwd(here::here("2020_Corona", "plots", "series_sum"))
-pdfs <- list.files(here::here("2020_Corona", "plots", "series_sum"), pattern = "*.pdf")
+setwd(here::here("plots", "series_sum"))
+pdfs <- list.files(here::here("plots", "series_sum"), pattern = "*.pdf")
 
 for(pdf in pdfs) {
-  pdf_convert(pdf = here::here("2020_Corona", "plots", "series_sum", pdf), 
+  pdf_convert(pdf = here::here("plots", "series_sum", pdf), 
               format = "png", dpi = 200)
 }
 
@@ -345,7 +345,7 @@ for(i in first_day:latest_day) {
                   size = 1.9,
                   hjust = .5)
   
-  ggsave(here::here("2020_Corona", "plots", "series_begin", glue::glue("corona_begin_yday_{i}.pdf")),
+  ggsave(here::here("plots", "series_begin", glue::glue("corona_begin_yday_{i}.pdf")),
          width = 18.4, height = 12.4, device = cairo_pdf)
   
   if(i == latest_day) {
@@ -372,18 +372,18 @@ for(i in first_day:latest_day) {
                   size = 1.9,
                   hjust = .5)
     
-    ggsave(here::here("2020_Corona", "plots", "series_begin", glue::glue("corona_begin_yday_latest.pdf")),
+    ggsave(here::here("plots", "series_begin", glue::glue("corona_begin_yday_latest.pdf")),
            width = 18.4, height = 12.4, device = cairo_pdf)
   }
 }
 
 
 ## convert pdf's to png's
-setwd(here::here("2020_Corona", "plots", "series_begin"))
-pdfs <- list.files(here::here("2020_Corona", "plots", "series_begin"), pattern = "*.pdf")
+setwd(here::here("plots", "series_begin"))
+pdfs <- list.files(here::here("plots", "series_begin"), pattern = "*.pdf")
 
 for(pdf in pdfs) {
-  pdf_convert(pdf = here::here("2020_Corona", "plots", "series_begin", pdf), 
+  pdf_convert(pdf = here::here("plots", "series_begin", pdf), 
               format = "png", dpi = 200)
 }
 
