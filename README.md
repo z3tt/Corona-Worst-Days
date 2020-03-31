@@ -4,13 +4,13 @@ Repository of the latest animation showing confirmed daily deaths worldwide and 
 
 ### Countries ranked by day of first confirmed death
 
-![./plots/corona_begin_latest.gif](hhttps://raw.githubusercontent.com/Z3tt/Corona-Daily-Deaths-Animation/master/plots/corona_begin_latest.gif)<br>
-![./plots/corona_begin_yday_latest_1.png](hhttps://raw.githubusercontent.com/Z3tt/Corona-Daily-Deaths-Animation/master/plots/corona_begin_yday_latest_1.png)<br>
+![./plots/corona_begin_latest.gif](https://github.com/Z3tt/Corona-Daily-Deaths-Animation/raw/master/plots/corona_begin_latest.gif)<br>
+![./plots/corona_begin_yday_latest_1.png](https://raw.githubusercontent.com/Z3tt/Corona-Daily-Deaths-Animation/master/plots/corona_begin_yday_latest_1.png)<br>
 
 ### Countries ranked by total number of confirmed deaths
 
-![./plots/corona_sum_latest.gif](hhttps://raw.githubusercontent.com/Z3tt/Corona-Daily-Deaths-Animation/master/plots/corona_sum_latest.gif)<br>
-![./plots/corona_sum_yday_latest_1.png](hhttps://raw.githubusercontent.com/Z3tt/Corona-Daily-Deaths-Animation/master/plots/corona_sum_yday_latest_1.png)<br>
+![./plots/corona_sum_latest.gif](https://github.com/Z3tt/Corona-Daily-Deaths-Animation/raw/master/plots/corona_sum_latest.gif)<br>
+![./plots/corona_sum_yday_latest_1.png](https://raw.githubusercontent.com/Z3tt/Corona-Daily-Deaths-Animation/master/plots/corona_sum_yday_latest_1.png)<br>
 
 The visualizations were created in the programming language `R` using the graphic library `ggplot2` and the `magick` package.
 
