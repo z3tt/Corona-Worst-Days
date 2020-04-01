@@ -36,4 +36,4 @@ vignettes/*.pdf
 *.knit.md
 
 # plot seies
-/plots/series*
+/plots/series_*

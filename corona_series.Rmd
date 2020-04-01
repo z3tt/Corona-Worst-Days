@@ -277,8 +277,7 @@ for(i in first_day:latest_day) {
       lab = format(sum, big.mark = ","),
       lab = if_else(country == "World", glue::glue("**{lab}**"), glue::glue("{lab}"))
     ) %>% 
-    ungroup() %>% 
-    mutate(country = fct_reorder(country, sum))
+    ungroup() 
   
   g <-
     ggplot(df,
@@ -307,7 +306,7 @@ for(i in first_day:latest_day) {
                        xend = n_countries - .5,
                        y = 19.1,
                        yend = i + .5),
-                   color = "black",
+                   color = "grey40",
                    size = .2) +
       coord_flip() +
       scale_x_discrete(expand = c(.001, 0.01)) +
