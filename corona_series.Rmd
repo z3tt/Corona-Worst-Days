@@ -118,6 +118,9 @@ dates <-
                      max(date, na.rm = T))) %>% 
   group_by(date, yday) %>% 
   summarize(label = unique(glue::glue("{month(date, label = T)} {day(date)}")))
+
+fig_width <- 18.4
+fig_height <- 12.4
 ```
 
 ```{r animation-ranked-by-death-toll}
@@ -213,7 +216,7 @@ for(i in first_day:latest_day) {
                 hjust = .5)
   
   ggsave(here::here("plots", "series_sum", glue::glue("corona_sum_yday_{i}.pdf")),
-         width = 18.4, height = 12.4, device = cairo_pdf)
+         width = fig_width, height = fig_height, device = cairo_pdf)
   
   if(i == latest_day) {
     g_latest <- 
@@ -240,7 +243,7 @@ for(i in first_day:latest_day) {
                   hjust = .5)
     
     ggsave(here::here("plots", "series_sum", glue::glue("corona_sum_yday_latest.pdf")),
-           width = 18.4, height = 12.4, device = cairo_pdf)
+           width = fig_width, height = fig_height, device = cairo_pdf)
   }
 }
 
@@ -346,7 +349,7 @@ for(i in first_day:latest_day) {
                   hjust = .5)
   
   ggsave(here::here("plots", "series_begin", glue::glue("corona_begin_yday_{i}.pdf")),
-         width = 18.4, height = 12.4, device = cairo_pdf)
+         width = fig_width, height = fig_height, device = cairo_pdf)
   
   if(i == latest_day) {
     g_latest <- 
@@ -373,7 +376,7 @@ for(i in first_day:latest_day) {
                   hjust = .5)
     
     ggsave(here::here("plots", "series_begin", glue::glue("corona_begin_yday_latest.pdf")),
-           width = 18.4, height = 12.4, device = cairo_pdf)
+           width = fig_width, height = fig_height, device = cairo_pdf)
   }
 }
 
