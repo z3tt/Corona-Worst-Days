@@ -84,8 +84,9 @@ df_corona_days <-
   mutate(n = sum(daily > 0, na.rm = T)) %>% 
   ungroup() %>% 
   mutate(country = case_when(
-    country == "US" ~ "United States of America",
+    country == "US" ~ "United States",
     country == "Korea, South" ~ "South Korea",
+    country == "Dominican Republic" ~ "Dominican Rep.",
     TRUE ~ country
   ))
 
@@ -124,8 +125,8 @@ df_dates <-
 dates <- df_dates$yday
 dates_lab <- df_dates$label
 
-fig_width <- 18.7
-fig_height <- 12.2
+fig_width <- 20.5
+fig_height <- 15.1
 ```
 
 
@@ -153,10 +154,17 @@ for(i in first_day:latest_day) {
     ## rank by day of overall number of confirmed deaths
     mutate(country = fct_reorder(country, sum))
   
+  ## one dot per country for given dates
   df_dots <- 
     df_corona_fct %>% 
     filter(yday %in% dates) %>% 
     mutate(country = factor(country, levels = levels(df$country)))
+  
+  ## colored labels on the right hand side
+  df_labs <-
+    df %>% 
+    filter(yday == i) %>% 
+    mutate(imp = if_else(day_max > 0, 1, 0))
   
   g <-
     ggplot(df,
@@ -190,7 +198,7 @@ for(i in first_day:latest_day) {
       coord_flip() +
       scale_x_discrete(expand = c(.001, .001)) +
       scale_y_continuous(expand = c(.001, 0.01),
-                         limits = c(19.1, latest_day + .5),
+                         limits = c(19.1, latest_day + 6.3),
                          sec.axis = dup_axis(),
                          breaks = dates,
                          labels = dates_lab) + 
@@ -210,9 +218,9 @@ for(i in first_day:latest_day) {
                                    label.hjust = .5,
                                    barwidth = unit(45, "lines"),
                                    barheight = unit(.6, "lines"))) +
-    labs(x = NULL, y = NULL, 
-         title = "<b style='color:#c93a6e;'>The Worst Days:</b> Peaks in Confirmed Daily Deaths Due to COVID-19 So Far",
-         caption = "The visualization shows **countries with at least 10 reported deaths** due to the corona virus disease 2019 (COVID-19). The color intensity for each day and country is estimated as<br>the number of deaths on this particular day divided by the highest daily death toll so far. The countries are ranked by the overall number of confirmed deaths due to COVID-19.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**")
+      labs(x = NULL, y = NULL, 
+           title = "<b style='color:#c93a6e;'>The Worst Days:</b> Peaks in Confirmed Daily Deaths Due to COVID-19 So Far",
+           caption = "The visualization shows **countries with at least 10 reported deaths** due to the corona virus disease 2019 (COVID-19). The color intensity for each day and country is estimated as<br>the number of deaths on this particular day divided by the highest daily death toll so far. The countries are ranked by the overall number of confirmed deaths due to COVID-19.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**")
   
   g_daily <-
     g +
@@ -224,7 +232,31 @@ for(i in first_day:latest_day) {
                 color = "black",
                 fontface = "bold",
                 size = 1.9,
-                hjust = .5)
+                hjust = .5) +
+      geom_label(data = df_labs,
+                 aes(country,
+                     i + .8,
+                     label = country),
+                 family = "Open Sans",
+                 color = "white",
+                 fontface = "bold",
+                 size = 3.7,
+                 hjust = 0,
+                 label.size = NA,
+                 label.padding = unit(0.2, "lines")) +
+      geom_text(data = df_labs,
+                 aes(country,
+                     i + .8,
+                     label = country,
+                     alpha = imp),
+                 family = "Open Sans",
+                 color = "black",
+                 fontface = "bold",
+                 size = 3.7,
+                 hjust = 0) +
+      scale_alpha(range = c(.3, 1),
+                  limits = c(0, 1),
+                  guide = F)
   
   ggsave(here::here("plots", "series_sum", glue::glue("corona_sum_yday_{i}.pdf")),
          width = fig_width, height = fig_height, device = cairo_pdf)
@@ -251,7 +283,17 @@ for(i in first_day:latest_day) {
                   family = "Overpass Mono",
                   fontface = "bold",
                   size = 1.9,
-                  hjust = .5)
+                  hjust = .5) +
+        geom_text(data = df_labs,
+                  aes(country,
+                      latest_day + .8,
+                      label = country,
+                      color = rel,
+                      color = after_scale(colorspace::darken(color, .15, space = "HLS"))),
+                  family = "Open Sans",
+                  fontface = "bold",
+                  size = 3.7,
+                  hjust = 0)
     
     ggsave(here::here("plots", "series_sum", glue::glue("corona_sum_yday_latest.pdf")),
            width = fig_width, height = fig_height, device = cairo_pdf)
@@ -264,7 +306,7 @@ pdfs <- list.files(here::here("plots", "series_sum"), pattern = "*.pdf")
 
 for(pdf in pdfs) {
   pdf_convert(pdf = here::here("plots", "series_sum", pdf), 
-              format = "png", dpi = 300)
+              format = "png", dpi = 250)
 }
 
 ## convert png's to gif
@@ -285,6 +327,7 @@ for(i in first_day:latest_day) {
     mutate(
       max = max(daily, na.rm = T),
       rel = daily / max,
+      day_max = max(yday[which(rel == 1)]),
       sum = sum(daily, na.rm = T),
       day_first = min(yday[which(rel > 0)]),
       lab = format(sum, big.mark = ","),
@@ -294,10 +337,17 @@ for(i in first_day:latest_day) {
     ## rank by day of first confirmed deaths
     mutate(country = fct_reorder(country, -day_first))
   
+  ## one dot per country for given dates
   df_dots <- 
     df_corona_fct %>% 
     filter(yday %in% dates) %>% 
     mutate(country = factor(country, levels = levels(df$country)))
+  
+  ## colored labels on the right hand side
+  df_labs <-
+    df %>% 
+    filter(yday == i) %>% 
+    mutate(imp = if_else(day_max > 0, 1, 0))
   
   g <-
     ggplot(df,
@@ -331,7 +381,7 @@ for(i in first_day:latest_day) {
       coord_flip() +
       scale_x_discrete(expand = c(.001, 0.01)) +
       scale_y_continuous(expand = c(.001, 0.01),
-                         limits = c(19.1, latest_day + .5),
+                         limits = c(19.1, latest_day + 6.5),
                          sec.axis = dup_axis(),
                          breaks = dates,
                          labels = dates_lab) + 
@@ -358,14 +408,38 @@ for(i in first_day:latest_day) {
   g_daily <- 
     g +
       geom_text(data = df %>% filter(yday == i),
-                  aes(country,
-                      yday,
-                      label = daily),
-                  family = "Overpass Mono",
-                  color = "black",
-                  fontface = "bold",
-                  size = 1.9,
-                  hjust = .5)
+                aes(country,
+                    yday,
+                    label = daily),
+                family = "Overpass Mono",
+                color = "black",
+                fontface = "bold",
+                size = 1.9,
+                hjust = .5) +
+      geom_label(data = df_labs,
+                 aes(country,
+                     i + .8,
+                     label = country),
+                 family = "Open Sans",
+                 color = "white",
+                 fontface = "bold",
+                 size = 3.7,
+                 hjust = 0,
+                 label.size = NA,
+                 label.padding = unit(0.2, "lines")) +
+      geom_text(data = df_labs,
+                 aes(country,
+                     i + .8,
+                     label = country,
+                     alpha = imp),
+                 family = "Open Sans",
+                 color = "black",
+                 fontface = "bold",
+                 size = 3.7,
+                 hjust = 0) +
+      scale_alpha(range = c(.3, 1),
+                  limits = c(0, 1),
+                  guide = F)
   
   ggsave(here::here("plots", "series_begin", glue::glue("corona_begin_yday_{i}.pdf")),
          width = fig_width, height = fig_height, device = cairo_pdf)
@@ -392,7 +466,17 @@ for(i in first_day:latest_day) {
                   family = "Overpass Mono",
                   fontface = "bold",
                   size = 1.9,
-                  hjust = .5)
+                  hjust = .5) +
+        geom_text(data = df_labs,
+                  aes(country,
+                      latest_day + .8,
+                      label = country,
+                      color = rel,
+                      color = after_scale(colorspace::darken(color, .15, space = "HLS"))),
+                  family = "Open Sans",
+                  fontface = "bold",
+                  size = 3.7,
+                  hjust = 0)
     
     ggsave(here::here("plots", "series_begin", glue::glue("corona_begin_yday_latest.pdf")),
            width = fig_width, height = fig_height, device = cairo_pdf)
@@ -406,7 +490,7 @@ pdfs <- list.files(here::here("plots", "series_begin"), pattern = "*.pdf")
 
 for(pdf in pdfs) {
   pdf_convert(pdf = here::here("plots", "series_begin", pdf), 
-              format = "png", dpi = 300)
+              format = "png", dpi = 250)
 }
 
 ## convert png's to gif
@@ -437,6 +521,15 @@ df <-
     ## rank by trend and put worldwide on top
     mutate(country = fct_reorder(country, trend)) %>% 
     mutate(country = fct_relevel(country, "Worldwide", after = Inf))
+  
+## one dot per country for given dates
+df_dots <- 
+  df_corona_fct %>% 
+  filter(yday %in% dates) %>% 
+  mutate(country = factor(country, levels = levels(df$country)))
+
+## colored labels on the right hand side
+df_labs <- filter(df, yday == latest_day)
 
 ggplot(df,
        aes(country,
@@ -460,31 +553,41 @@ ggplot(df,
                    y = 19.1,
                    yend = latest_day + .5),
                color = "grey40",
-               size = .2) +
-    geom_tile(data = df %>% filter(rel == 1),
-              color = "black",
-              fill = NA,
-              size = .5) +
-    geom_text(data = df %>% filter(yday == latest_day),
-              aes(country,
-                  yday,
-                  label = daily),
-              family = "Overpass Mono",
-              color = "grey20",
-              size = 1.9,
-              hjust = .5) +
-    geom_text(data = df %>% filter(rel == 1),
-              aes(country,
-                  yday,
-                  label = daily),
-              family = "Overpass Mono",
-              fontface = "bold",
-              size = 1.9,
-              hjust = .5) +
+             size = .2) +
+  geom_tile(data = df %>% filter(rel == 1),
+            color = "black",
+            fill = NA,
+            size = .5) +
+  geom_text(data = df %>% filter(yday == latest_day),
+            aes(country,
+                yday,
+                label = daily),
+            family = "Overpass Mono",
+            color = "grey20",
+            size = 1.9,
+            hjust = .5) +
+  geom_text(data = df %>% filter(rel == 1),
+            aes(country,
+                yday,
+                label = daily),
+            family = "Overpass Mono",
+            fontface = "bold",
+            size = 1.9,
+            hjust = .5) +
+  geom_text(data = df_labs,
+            aes(country,
+                latest_day + .8,
+                label = country,
+                color = rel,
+                color = after_scale(colorspace::darken(color, .15, space = "HLS"))),
+            family = "Open Sans",
+            fontface = "bold",
+            size = 3.7,
+            hjust = 0) +
   coord_flip() +
   scale_x_discrete(expand = c(.001, 0.01)) +
   scale_y_continuous(expand = c(.001, 0.01),
-                     limits = c(19.1, latest_day + .5),
+                     limits = c(19.1, latest_day + 6.5),
                      sec.axis = dup_axis(),
                      breaks = dates,
                      labels = dates_lab) + 
@@ -514,6 +617,6 @@ ggsave(here::here("plots", glue::glue("corona_trend_yday_latest.pdf")),
 ## convert pdf to png
 setwd(here::here("plots"))
 pdf_convert(pdf = here::here("plots", "corona_trend_yday_latest.pdf"), 
-            format = "png", dpi = 300)
+            format = "png", dpi = 500)
 ```
 
