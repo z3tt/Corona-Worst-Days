@@ -125,6 +125,7 @@ df_dates <-
                      ymd("2020-02-15"),
                      ymd("2020-03-01"),
                      ymd("2020-03-15"),
+                     ymd("2020-04-01"),
                      max(date, na.rm = T))) %>% 
   group_by(date, yday) %>% 
   summarize(label = unique(glue::glue("{month(date, label = T)} {day(date)}")))
@@ -132,8 +133,8 @@ df_dates <-
 dates <- df_dates$yday
 dates_lab <- df_dates$label
 
-fig_width <- 20.7
-fig_height <- 15.9
+fig_width <- 21.4
+fig_height <- 16.3
 ```
 
 
