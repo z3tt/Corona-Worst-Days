@@ -209,7 +209,7 @@ for(i in first_day:latest_day) {
                     vjust = .6) +
       geom_segment(aes(x = n_countries - .5,
                        xend = n_countries - .5,
-                       y = 19.1,
+                       y = 18.95,
                        yend = i + .5),
                    color = "grey40",
                    size = .2) +
@@ -391,7 +391,7 @@ for(i in first_day:latest_day) {
                     vjust = .6) +
       geom_segment(aes(x = n_countries - .5,
                        xend = n_countries - .5,
-                       y = 19.1,
+                       y = 18.95,
                        yend = i + .5),
                    color = "grey40",
                    size = .2) +
@@ -534,7 +534,7 @@ for(i in first_day:latest_day) {
     ) %>% 
     ungroup() %>% 
     ## rank by day of first confirmed deaths
-    mutate(country = fct_reorder(country, -lat)) %>% 
+    mutate(country = fct_reorder(country, lng)) %>% 
     mutate(country = fct_relevel(country, "Worldwide", after = Inf))
   
   ## one dot per country for given dates
@@ -574,7 +574,7 @@ for(i in first_day:latest_day) {
                     vjust = .6) +
       geom_segment(aes(x = n_countries - .5,
                        xend = n_countries - .5,
-                       y = 19.1,
+                       y = 18.95,
                        yend = i + .5),
                    color = "grey20",
                    size = .4) +
@@ -641,7 +641,7 @@ for(i in first_day:latest_day) {
                   limits = c(0, 1),
                   guide = F)
   
-  ggsave(here::here("plots", "series_lat", glue::glue("corona_lat_yday_{i}.pdf")),
+  ggsave(here::here("plots", "series_lng", glue::glue("corona_lat_yday_{i}.pdf")),
          width = fig_width, height = fig_height, device = cairo_pdf)
   
   if(i == latest_day) {
@@ -678,18 +678,18 @@ for(i in first_day:latest_day) {
                   size = 3.7,
                   hjust = 0)
     
-    ggsave(here::here("plots", "series_lat", glue::glue("corona_lat_yday_latest.pdf")),
+    ggsave(here::here("plots", "series_lng", glue::glue("corona_lat_yday_latest.pdf")),
            width = fig_width, height = fig_height, device = cairo_pdf)
   }
 }
 
 
 ## convert pdf's to png's
-setwd(here::here("plots", "series_lat"))
-pdfs <- list.files(here::here("plots", "series_lat"), pattern = "*.pdf")
+setwd(here::here("plots", "series_lng"))
+pdfs <- list.files(here::here("plots", "series_lng"), pattern = "*.pdf")
 
 for(pdf in pdfs) {
-  pdf_convert(pdf = here::here("plots", "series_lat", pdf), 
+  pdf_convert(pdf = here::here("plots", "series_lng", pdf), 
               format = "png", dpi = 250)
 }
 
@@ -744,7 +744,7 @@ ggplot(df,
                 vjust = .6) +
   geom_segment(aes(x = n_countries - .5,
                    xend = n_countries - .5,
-                   y = 19.1,
+                   y = 18.95,
                    yend = latest_day + .5),
                color = "grey40",
              size = .2) +
