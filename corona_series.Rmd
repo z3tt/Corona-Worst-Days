@@ -117,13 +117,13 @@ df_corona_world <-
     lng = 0
   )
 
-## only countries with more than 9 confirmed deaths + factorize countries
+## only countries with 50 or more confirmed deaths + factorize countries
 df_corona_fct <- 
   df_corona_days %>% 
   bind_rows(df_corona_world) %>% 
   group_by(country) %>% 
   mutate(sum = sum(daily, na.rm = T)) %>% 
-  filter(sum >= 10) %>%
+  filter(sum >= 50) %>%
   mutate(day_first = min(yday[which(!is.na(daily))])) %>% 
   ungroup() %>% 
   mutate(country = factor(country))
@@ -148,7 +148,7 @@ dates <- df_dates$yday
 dates_lab <- df_dates$label
 
 fig_width <- 24.2
-fig_height <- 19.7
+fig_height <- 15.7
 ```
 
 
@@ -329,7 +329,7 @@ pdfs <- list.files(here::here("plots", "series_sum"), pattern = "*.pdf")
 
 for(pdf in pdfs) {
   pdf_convert(pdf = here::here("plots", "series_sum", pdf), 
-              format = "png", dpi = 200)
+              format = "png", dpi = 250)
 }
 
 ## convert png's to gif
