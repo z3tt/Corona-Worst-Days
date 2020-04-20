@@ -31,22 +31,22 @@ font_add_google("Overpass", "Overpass")
 font_add_google("Overpass Mono", "Overpass Mono")
 
 theme_set(theme_minimal(base_size = 16, base_family = "Open Sans"))
-theme_update(axis.text.x = element_text(size = 12),
+theme_update(axis.text.x = element_text(size = 14),
              axis.text.y = element_text(size = 12, face = "bold", color = "black"),
              axis.ticks.x = element_line(color = "grey50", size = .4),
              axis.ticks.y = element_blank(),
              axis.ticks.length = unit(.3, "lines"),
              axis.title.y = element_text(face = "bold"),
              legend.position = "top",
-             legend.title = element_text(size = 16, color = "grey20"),
-             legend.text = element_text(family = "Overpass Mono", size = 11, color = "grey20"),
+             legend.title = element_text(size = 20, color = "grey20"),
+             legend.text = element_text(family = "Overpass Mono", size = 16, color = "grey20"),
              legend.margin = margin(5, 0, 20, 0),
              panel.grid = element_blank(),
-             plot.title = element_markdown(family = "Overpass", size = 42, face = "bold",
+             plot.title = element_markdown(family = "Overpass", size = 44, face = "bold",
                                            color = "grey20", hjust = .5, lineheight = 1.05,
                                            margin = margin(15, 0, 25, 0)),
              plot.title.position = "plot",
-             plot.caption = element_markdown(size = 11, color = "grey20", lineheight = 1.05,
+             plot.caption = element_markdown(size = 13, color = "grey20", lineheight = 1.1,
                                              hjust = 1, margin = margin(35, 0, 0, 0)),
              plot.margin = margin(20, 50, 20, 30))
 ```
@@ -96,8 +96,8 @@ df_corona_days <-
     country = case_when(
       country == "US" ~ "United States",
       country == "Korea, South" ~ "South Korea",
-      #country == "Dominican Republic" ~ "Dominican Rep.",
       country == "Bosnia and Herzegovina" ~ "Bosnia–Herzegovina",
+      country == "China" ~ "China*",
       TRUE ~ country
     ),
     country = str_replace(country, " and ", " & ")
@@ -108,19 +108,40 @@ df_corona_world <-
   df_corona_days %>% 
   group_by(date, yday, day, month) %>% 
   summarize_at(
-    vars(c("deaths", "daily", "n")), sum, na.rm = T
+    vars(c("deaths", "daily")), sum, na.rm = T
   ) %>% 
+  ungroup() %>% 
   filter(daily > 0) %>% 
   mutate(
     country = "Worldwide",
+    n  = sum(daily > 0, na.rm = T),
     lat = 0,
     lng = 0
   )
 
+## fix deaths in Wuhan, China, that were reported late
+china_deaths <- 
+  df_corona_days %>% 
+  filter(country == "China*" & yday == 108) %>% ## April 17th
+  pull(daily)
+
+df_corona_china_fix <-
+  df_corona_days %>% 
+  filter(country == "China*" & yday <= 108) %>% 
+  mutate(
+    daily = if_else(yday == 108, 0, daily),
+    daily = if_else(is.na(daily), 0, daily),
+    daily = daily + round(daily * china_deaths / sum(daily)),
+    daily = if_else(daily == max(daily), daily - 3, daily),
+    daily = if_else(daily == 0, NA_real_, daily)
+  ) 
+
 ## only countries with 50 or more confirmed deaths + factorize countries
 df_corona_fct <- 
   df_corona_days %>% 
+  filter(!(country == "China*" & yday <= 108)) %>% 
   bind_rows(df_corona_world) %>% 
+  bind_rows(df_corona_china_fix) %>% 
   group_by(country) %>% 
   mutate(sum = sum(daily, na.rm = T)) %>% 
   filter(sum >= 50) %>%
@@ -147,8 +168,8 @@ df_dates <-
 dates <- df_dates$yday
 dates_lab <- df_dates$label
 
-fig_width <- 24.2
-fig_height <- 15.7
+fig_width <- 25.7
+fig_height <- 17.3
 ```
 
 
@@ -170,7 +191,13 @@ for(i in first_day:latest_day) {
       sum = sum(daily, na.rm = T),
       day_max = max(yday[which(rel == 1)]),
       lab = format(sum, big.mark = ","),
-      lab = if_else(country == "Worldwide", glue::glue("**{lab}**"), glue::glue("{lab}"))
+      lab = format(sum, big.mark = ","),
+      lab = if_else(country == "Worldwide", 
+                    glue::glue("**{lab}**"), 
+                    glue::glue("{lab}")),
+      lab_daily = if_else(daily >= 10000, 
+                          glue::glue("{round(daily / 1000, 1)}K"), 
+                          as.character(daily))
     ) %>% 
     ungroup() %>% 
     ## rank by day of overall number of confirmed deaths
@@ -249,11 +276,11 @@ for(i in first_day:latest_day) {
       geom_text(data = df %>% filter(yday == i),
                 aes(country,
                     yday,
-                    label = daily),
-                family = "Overpass Mono",
+                    label = lab_daily),
+                family = "Overpass",
                 color = "black",
                 fontface = "bold",
-                size = 1.9,
+                size = 1.8,
                 hjust = .5) +
       geom_label(data = df_labs,
                  aes(country,
@@ -294,18 +321,18 @@ for(i in first_day:latest_day) {
         geom_text(data = df %>% filter(yday == i),
                   aes(country,
                       yday,
-                      label = daily),
-                  family = "Overpass Mono",
+                      label = lab_daily),
+                  family = "Overpass",
                   color = "grey40",
-                  size = 1.9,
+                  size = 1.8,
                   hjust = .5) +
         geom_text(data = df %>% filter(rel == 1),
                   aes(country,
                       yday,
-                      label = daily),
-                  family = "Overpass Mono",
+                      label = lab_daily),
+                  family = "Overpass",
                   fontface = "bold",
-                  size = 1.9,
+                  size = 1.8,
                   hjust = .5) +
         geom_text(data = df_labs,
                   aes(country,
@@ -356,7 +383,12 @@ for(i in first_day:latest_day) {
       sum = sum(daily, na.rm = T),
       day_max = max(yday[which(rel == 1)]),
       lab = format(sum, big.mark = ","),
-      lab = if_else(country == "Worldwide", glue::glue("**{lab}**"), glue::glue("{lab}"))
+      lab = if_else(country == "Worldwide", 
+                    glue::glue("**{lab}**"), 
+                    glue::glue("{lab}")),
+      lab_daily = if_else(daily >= 10000, 
+                          glue::glue("{round(daily / 1000, 1)}K"), 
+                          as.character(daily))
     ) %>% 
     ungroup() %>% 
     ## rank by day of first confirmed deaths
@@ -422,7 +454,7 @@ for(i in first_day:latest_day) {
                                       labels = scales::percent_format(accuracy = 1)) +
       guides(fill = guide_colorbar(title.position = "top",
                                    title.hjust = .5,
-                                   label.position = "bottom",
+                                   #label.position = "bottom",
                                    label.hjust = .5,
                                    barwidth = unit(55, "lines"),
                                    barheight = unit(.75, "lines"))) +
@@ -435,11 +467,11 @@ for(i in first_day:latest_day) {
       geom_text(data = df %>% filter(yday == i),
                 aes(country,
                     yday,
-                    label = daily),
-                family = "Overpass Mono",
+                    label = lab_daily),
+                family = "Overpass",
                 color = "black",
                 fontface = "bold",
-                size = 1.9,
+                size = 1.8,
                 hjust = .5) +
       geom_label(data = df_labs,
                  aes(country,
@@ -480,18 +512,18 @@ for(i in first_day:latest_day) {
         geom_text(data = df %>% filter(yday == i),
                   aes(country,
                       yday,
-                      label = daily),
-                  family = "Overpass Mono",
+                      label = lab_daily),
+                  family = "Overpass",
                   color = "grey20",
-                  size = 1.9,
+                  size = 1.8,
                   hjust = .5) +
         geom_text(data = df %>% filter(rel == 1),
                   aes(country,
                       yday,
-                      label = daily),
-                  family = "Overpass Mono",
+                      label = lab_daily),
+                  family = "Overpass",
                   fontface = "bold",
-                  size = 1.9,
+                  size = 1.8,
                   hjust = .5) +
         geom_text(data = df_labs,
                   aes(country,
@@ -542,7 +574,13 @@ for(i in first_day:latest_day) {
       sum = sum(daily, na.rm = T),
       day_max = max(yday[which(rel == 1)]),
       lab = format(sum, big.mark = ","),
-      lab = if_else(country == "Worldwide", glue::glue("**{lab}**"), glue::glue("{lab}"))
+      lab = format(sum, big.mark = ","),
+      lab = if_else(country == "Worldwide", 
+                    glue::glue("**{lab}**"), 
+                    glue::glue("{lab}")),
+      lab_daily = if_else(daily >= 10000, 
+                          glue::glue("{round(daily / 1000, 1)}K"), 
+                          as.character(daily))
     ) %>% 
     ungroup() %>% 
     ## rank by day of first confirmed deaths
@@ -622,11 +660,11 @@ for(i in first_day:latest_day) {
       geom_text(data = df %>% filter(yday == i),
                 aes(country,
                     yday,
-                    label = daily),
-                family = "Overpass Mono",
+                    label = lab_daily),
+                family = "Overpass",
                 color = "black",
                 fontface = "bold",
-                size = 1.9,
+                size = 1.8,
                 hjust = .5) +
       geom_label(data = df_labs,
                  aes(country,
@@ -667,18 +705,18 @@ for(i in first_day:latest_day) {
         geom_text(data = df %>% filter(yday == i),
                   aes(country,
                       yday,
-                      label = daily),
-                  family = "Overpass Mono",
+                      label = lab_daily),
+                  family = "Overpass",
                   color = "grey20",
-                  size = 1.9,
+                  size = 1.8,
                   hjust = .5) +
         geom_text(data = df %>% filter(rel == 1),
                   aes(country,
                       yday,
-                      label = daily),
-                  family = "Overpass Mono",
+                      label = lab_daily),
+                  family = "Overpass",
                   fontface = "bold",
-                  size = 1.9,
+                  size = 1.8,
                   hjust = .5) +
         geom_text(data = df_labs,
                   aes(country,
@@ -726,7 +764,12 @@ df <-
       max = max(daily, na.rm = T),
       rel = daily / max,
       lab = format(sum, big.mark = ","),
-      lab = if_else(country == "Worldwide", glue::glue("**{lab}**"), glue::glue("{lab}")),
+      lab = if_else(country == "Worldwide", 
+                    glue::glue("**{lab}**"), 
+                    glue::glue("{lab}")),
+      lab_daily = if_else(daily >= 10000, 
+                          glue::glue("{round(daily / 1000, 1)}K"), 
+                          as.character(daily)),
       day_max = max(yday[which(rel == 1)]),
       ## rank first by latest "worst day", then by total deaths
       trend = day_max + daily[which(yday == latest_day)] / 100000,
@@ -770,18 +813,18 @@ ggplot(df,
   geom_text(data = df %>% filter(yday == latest_day),
             aes(country,
                 yday,
-                label = daily),
-            family = "Overpass Mono",
+                label = lab_daily),
+            family = "Overpass",
             color = "grey20",
-            size = 1.9,
+            size = 1.8,
             hjust = .5) +
   geom_text(data = df %>% filter(rel == 1),
             aes(country,
                 yday,
-                label = daily),
-            family = "Overpass Mono",
+                label = lab_daily),
+            family = "Overpass",
             fontface = "bold",
-            size = 1.9,
+            size = 1.8,
             hjust = .5) +
   geom_text(data = df_labs,
             aes(country,
@@ -818,7 +861,7 @@ ggplot(df,
                                barheight = unit(.75, "lines"))) +
   labs(x = NULL, y = NULL, 
        title = "<b style='color:#c93a6e;'>The Worst Days:</b> Which Countries are Currently Experiencing the Highest<br>Number of Confirmed Daily Deaths Due to COVID-19 So Far?",
-       caption = '**The visualization shows countries with at least 10 reported deaths due to the corona virus disease (COVID-19).** The color intensity for each day and country is estimated as the<br>number of deaths on this particular day divided by the highest daily death toll so far. The countries are ranked by time since the latest "worst day" and number of reported daily deaths.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**')
+       caption = '**The visualization shows countries with at least 10 reported deaths due to the corona virus disease (COVID-19).** The color intensity for each day and country is estimated as the<br>number of deaths on this particular day divided by the highest daily death toll so far. The countries are ranked by time since the latest "worst day" and number of reported daily deaths.<br>* On April 17<sup>th</sup> 2020, officials in Wuhan, China, revised the city´s coronavirus death toll. The deaths have been added proportionally to the daily confirmed deaths of China until that date.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**')
 
 ggsave(here::here("plots", glue::glue("corona_trend_yday_latest.pdf")),
        width = fig_width, height = fig_height + .5, device = cairo_pdf)
@@ -863,18 +906,18 @@ df %>%
     geom_text(data = df %>% filter(yday == latest_day),
               aes(country,
                   yday,
-                  label = daily),
-              family = "Overpass Mono",
+                  label = lab_daily),
+              family = "Overpass",
               color = "grey20",
-              size = 1.9,
+              size = 1.8,
               hjust = .5) +
     geom_text(data = df %>% filter(rel == 1),
               aes(country,
                   yday,
-                  label = daily),
-              family = "Overpass Mono",
+                  label = lab_daily),
+              family = "Overpass",
               fontface = "bold",
-              size = 1.9,
+              size = 1.8,
               hjust = .5) +
     geom_text(data = df_labs,
               aes(country,

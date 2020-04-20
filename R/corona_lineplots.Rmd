@@ -53,7 +53,7 @@ theme_update(axis.ticks = element_blank(),
              plot.subtitle = element_markdown(size = 22, color = "grey20", hjust = 0, 
                                               lineheight = 1.15, margin = margin(0, 0, 35, 0)),
              plot.caption = element_markdown(size = 16, color = "grey20", hjust = 1, 
-                                             margin = margin(40, 0, 0, 0)),
+                                             lineheight = 1.05, margin = margin(40, 0, 0, 0)),
              plot.margin = margin(20, 30, 20, 30))
 ```
 
@@ -87,14 +87,14 @@ df_corona_days <-
     daily = if_else(is.na(daily), deaths, daily)
   ) %>% 
   ungroup() %>% 
-  filter(yday >= min(yday[which(daily > 0)])) %>% 
+  filter(yday >= min(yday[which(daily > 0)]) - 6) %>% 
   mutate(
-    daily = if_else(daily <= 0, NA_real_, daily),
+    #daily = if_else(daily <= 0, NA_real_, daily),
     country = case_when(
       country == "US" ~ "United States",
       country == "Korea, South" ~ "South Korea",
       country == "Bosnia and Herzegovina" ~ "Bosnia–Herzegovina",
-      #country == "China" ~ "China*",
+      country == "China" ~ "China*",
       TRUE ~ country
     ),
     country = str_replace(country, " and ", " & ")
@@ -110,14 +110,48 @@ df_corona_world <-
   filter(daily > 0) %>% 
   mutate(country = "Worldwide")
 
+## add days before first death in China to calculate rolling avg
+df_corona_china_zeros <-
+  df_corona_days %>% 
+  filter(country == "China*") %>% 
+  slice(1:6) %>% 
+  mutate(
+    date = date - 6,
+    deaths = 17,
+    yday = yday(date),
+    day = day(date),
+    month = month(date, label = T),
+    daily = 0
+  )
+
+## fix deaths in Wuhan, China, that were reported late
+china_deaths <- 
+  df_corona_days %>% 
+  filter(country == "China*" & yday == 108) %>% ## April 17th
+  pull(daily)
+
+df_corona_china_fix <-
+  df_corona_days %>% 
+  filter(country == "China*" & yday <= 108) %>% 
+  mutate(
+    daily = if_else(yday == 108, 0, daily),
+    daily = daily + round(daily * china_deaths / sum(daily)),
+    daily = if_else(daily == max(daily), daily - 3, daily)
+  ) 
+
+
 ## calculate rolling average and add label column
 df_corona_g <- 
   df_corona_days %>% 
+  filter(!(country == "China*" & yday <= 108)) %>% 
   bind_rows(df_corona_world) %>% 
+  bind_rows(df_corona_china_zeros) %>% 
+  bind_rows(df_corona_china_fix) %>% 
+  arrange(country, date) %>% 
   group_by(country) %>% 
   mutate(
-    daily = if_else(is.na(daily), 0, daily),
-    roll = rollmean(daily, 7, align = "left", fill = NA),
+    #daily = if_else(is.na(daily), 0, daily),
+    roll = rollmean(daily, 7, align = "right", fill = NA),
     max = max(roll, na.rm = T),
     rel = roll / max,
     rel = if_else(is.na(rel), 0, rel),
@@ -125,7 +159,7 @@ df_corona_g <-
     day_first = min(yday[which(rel > 0)]),
     day_rel = yday - day_first
   ) %>% 
-  filter(yday < max(yday) - 5, day_rel >= 0) %>% 
+  filter(day_rel >= 0) %>%   ##yday < max(yday) - 5, 
   mutate(
     day_max = max(yday[which(rel == 1)]),
     latest = daily[which(yday == max(yday))],
@@ -137,14 +171,21 @@ df_corona_g <-
 first_day <- min(df_corona_g$yday)
 latest_day <- max(df_corona_g$yday)
 latest_rel <- max(df_corona_g$day_rel)
+
+subtitle_lab <- "<b>Each panel shows the trajectory of confirmed deaths due to COVID-19 as percentage of daily deaths relative to the <i style='color:#c93a6e;'>worst day so far</i> for countries with at least 50 reported deaths.</b><span style='font-size:18pt;'><br><br>For each day, starting with the date of first reported death, the 7-day rolling average of confimed deaths per day is divided by the <b style='color:#c93a6e;'>highest average number of daily deaths so far defined as 100%</b>.<br>The text labels show the day of the first cofirmed death due to COVID-19 and the overall death toll per country.</span>"
+
+caption_lab <- "**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**<br>Note: Charts contain all confirmed deaths due to COVID-19 since January 22<sup>nd</sup> to April 18<sup>th</sup> 2020 for countries with 50 or more deaths.<br>* The deaths reported on April 17<sup>th</sup>in Wuhan, China, have been added proportionally to the confirmed daily deaths until that date."
 ```
+
+
+# Global Trajectory
 
 ```{r overview-plot}
 df <- 
   df_corona_g %>% 
   filter(sum >= 50) %>% 
   mutate(
-    country_lump = if_else(country %in% c("Worldwide", "China", "Italy", "Spain", "France", 
+    country_lump = if_else(country %in% c("Worldwide", "China*", "Italy", "Spain", "France", 
                                          "Germany", "United Kingdom", "United States"), 
                           country, "Other"),
     country_lump = fct_reorder(country_lump, -day_first)
@@ -196,6 +237,9 @@ ggsave(here::here("plots", "corona_line_overview.pdf"),
        width = 9.2, height = 6.7, device = cairo_pdf)
 ```
 
+
+# Facets
+
 ```{r facets-plot, fig.width = 27.5, fig.height = 20}
 ## only countries with more than 50 or more confirmed deaths
 dff <- 
@@ -207,7 +251,17 @@ dff <-
   mutate(country = factor(country)) %>% 
   mutate(lab_sum = if_else(as.numeric(country) == 1, 
                              glue::glue("Total: {lab_sum}"),
-                             lab_sum))
+                             lab_sum)) %>% 
+  group_by(country) %>% 
+  mutate(
+    lab_worst = if_else(as.numeric(country) == 1, 
+                        "Maximum daily\naverage so far", 
+                        NA_character_),
+    xend = if_else(as.numeric(country) == 1, day_rel + 35, NA_real_),
+    yend = if_else(as.numeric(country) == 1, .85, NA_real_)
+  )
+
+label_col <- c("#f2eaa8", "#ffd08e", "#ffa679", "#f67b77", "#e15383")
 
 f <- 
   ggplot(dff, 
@@ -222,8 +276,8 @@ f <-
                 unhighlighted_params = list(color = "grey80")) +
     coord_cartesian(clip = "off") +
     scale_x_continuous(expand = c(0, 0),
-                       limits = c(-10, latest_rel + 11),
-                       breaks = seq(0, 75, by = 25)) + 
+                       limits = c(-13, latest_rel + 11),
+                       breaks = seq(0, 80, by = 20)) + 
     scale_y_continuous(expand = c(.003, .003),
                        limits = c(0, 1.05),
                        labels = scales::percent_format()) +
@@ -247,15 +301,15 @@ f +
   #            size = 2,
   #            color = "#c93a6e") +
   geom_rect(xmin = -Inf, xmax = 0,
-              ymin = -Inf, ymax = Inf,
-              fill = "white",
-              inherit.aes = F) +
+            ymin = -Inf, ymax = Inf,
+            fill = "white",
+            inherit.aes = F) +
   geom_rect(xmin = latest_rel + 2.5, xmax = Inf,
-              ymin = -Inf, ymax = Inf,
-              fill = "white",
-              inherit.aes = F) +
+            ymin = -Inf, ymax = Inf,
+            fill = "white",
+            inherit.aes = F) +
   ## version with label showing latest daily numbers
-  geom_label(data = dff %>% filter(yday == latest_day & country != "China"),
+  geom_label(data = dff %>% filter(yday == latest_day & country != "China*"),
             aes(label = lab_sum),
             size = 5,
             family = "Overpass",
@@ -264,7 +318,7 @@ f +
             hjust = 0,
             nudge_x = 4,
             lineheight = .9) +
-  geom_label(data = dff %>% filter(yday == latest_day & country == "China"),
+  geom_label(data = dff %>% filter(yday == latest_day & country == "China*"),
             aes(label = lab_sum),
             size = 5,
             family = "Overpass",
@@ -289,24 +343,37 @@ f +
             hjust = 1,
             vjust = .5,
             nudge_x = -1) +
+  ## label worst day so far
+  geom_segment(data = dff %>% filter(rel == 1),
+               aes(xend = xend, yend = yend),
+               color = "#e15383",
+               size = .6) +
+  geom_label(data = dff %>% filter(rel == 1),
+             aes(xend, .95, label = lab_worst),
+             size = 4.5,
+             family = "Overpass",
+             fontface = "bold",
+             color = "#e15383",
+             lineheight = .9) +
   rcartocolor::scale_color_carto_c(palette = "PinkYl", guide = F) +
   labs(x = "Number of days since first confirmed death due to COVID-19",
        y = "COVID-19 death cases relative to each country's highest average daily death toll so far", 
        title = "<b style='color:#c93a6e;'>The Worst Days:</b> Peaks in Confirmed Daily Deaths Due to COVID-19 So Far",
-       subtitle = "<b>Each panel shows the trajectory of confirmed deaths due to COVID-19 as percentage of daily deaths relative to the <i style='color:#c93a6e;'>worst day so far</i> for countries with at least 50 reported deaths.</b><span style='font-size:18pt;'><br><br>For each day, starting with the date of first reported death, the 7-day rolling average of confimed deaths per day is divided by the <b style='color:#c93a6e;'>highest average number of daily deaths so far defined as 100%</b>.<br>The text labels show the day of the first cofirmed death due to COIVD-19 and the overall death toll per country.</span>",
-       caption = "**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**<br>Note: Charts contain all confirmed deaths due to COVID-19 since January 22<sup>nd</sup> to April 15<sup>th</sup> 2020 for countries with 50 or more deaths.")
+       subtitle = subtitle_lab,
+       caption = caption_lab) +
+  theme(axis.text.y = element_text(colour = label_col, face = "bold"))
 
 ggsave(here::here("plots", "corona_line_facet.pdf"),
        width = 28, height = 21, device = cairo_pdf)
 
 setwd(here::here("plots"))
 pdf_convert(pdf = here::here("plots", "corona_line_facet.pdf"), 
-              format = "png", dpi = 700)
+              format = "png", dpi = 350)
 ```
 
 ## Animation
 
-```{r}
+```{r facets-animation}
 dfa <- 
   df_corona_g %>% 
   filter(
@@ -325,7 +392,9 @@ for(i in first_day:latest_day) {
   df <-
     dfa %>% 
     filter(yday <= i) %>% 
+    group_by(country) %>% 
     mutate(
+      lab_sum = format(sum(daily, na.rm = T), big.mark = ","),
       lab_sum_a = if_else(as.numeric(country) == 1, 
                           glue::glue("Total: {lab_sum}"),
                           lab_sum),
@@ -348,7 +417,7 @@ for(i in first_day:latest_day) {
       coord_cartesian(clip = "off") +
       scale_x_continuous(expand = c(0, 0),
                          limits = c(-13, latest_rel + 11),
-                         breaks = seq(0, 75, by = 25)) + 
+                         breaks = seq(0, 100, by = 20)) + 
       scale_y_continuous(expand = c(.003, .003),
                          limits = c(0, 1.05),
                          labels = scales::percent_format()) +
@@ -360,13 +429,13 @@ for(i in first_day:latest_day) {
                size = 2,
                color = "#e15383") +
     geom_rect(xmin = -Inf, xmax = 0,
-                ymin = -Inf, ymax = Inf,
-                fill = "white",
-                inherit.aes = F) +
+              ymin = -Inf, ymax = Inf,
+              fill = "white",
+              inherit.aes = F) +
     geom_rect(xmin = latest_rel + 2.5, xmax = Inf,
-                ymin = -Inf, ymax = Inf,
-                fill = "white",
-                inherit.aes = F) +
+              ymin = -Inf, ymax = Inf,
+              fill = "white",
+              inherit.aes = F) +
     geom_point(data = df %>% filter(yday == i),
                size = 4.5,
                shape = 21,
@@ -376,15 +445,15 @@ for(i in first_day:latest_day) {
     geom_point(data = df %>% filter(yday == i),
                aes(color = rel),
                size = 2) +
-    geom_label(data = df %>% filter(yday == i & country != "China"),
-              aes(label = lab_sum_a),
-              size = 5,
-              family = "Overpass",
-              color = "grey20",
-              fontface = "bold",
-              hjust = 0,
-              nudge_x = 4,
-              lineheight = .9) +
+    geom_label(data = df %>% filter(yday == i & country != "China*"),
+               aes(label = lab_sum_a),
+               size = 5,
+               family = "Overpass",
+               color = "grey20",
+               fontface = "bold",
+               hjust = 0,
+               nudge_x = 4,
+               lineheight = .9) +
     geom_text(data = df %>% filter(day_rel == 0),
               aes(label = glue::glue("{month} {day}")),
               size = 4,
@@ -398,13 +467,13 @@ for(i in first_day:latest_day) {
     labs(x = "Number of days since first confirmed death due to COVID-19",
          y = "COVID-19 death cases relative to each country's highest average daily death toll so far", 
          title = "<b style='color:#c93a6e;'>The Worst Days:</b> Peaks in Confirmed Daily Deaths Due to COVID-19 So Far",
-         subtitle = "<b>Each panel shows the trajectory of confirmed deaths due to COVID-19 as percentage of daily deaths relative to the <i style='color:#c93a6e;'>worst day so far</i> for countries with at least 50 reported deaths.</b><span style='font-size:18pt;'><br><br>For each day, starting with the date of first reported death, the 7-day rolling average of confimed deaths per day is divided by the <b style='color:#c93a6e;'>highest average number of daily deaths so far defined as 100%</b>.<br>The text labels show the day of the first cofirmed death due to COIVD-19 and the overall death toll per country.</span>",
-         caption = "**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**<br>Note: Charts contain all confirmed deaths due to COVID-19 since January 22<sup>nd</sup> to April 15<sup>th</sup> 2020 for countries with 50 or more deaths.")
+         subtitle = subtitle_lab,
+         caption = caption_lab)
   
   if(i < latest_day - 32) {
     
     f +
-    geom_label(data = df %>% filter(yday == i & country == "China"),
+    geom_label(data = df %>% filter(yday == i & country == "China*"),
               aes(label = lab_sum_a),
               size = 5,
               family = "Overpass",
@@ -416,7 +485,7 @@ for(i in first_day:latest_day) {
   } else {
 
     f +
-    geom_label(data = df %>% filter(yday == i & country == "China"),
+    geom_label(data = df %>% filter(yday == i & country == "China*"),
               aes(label = lab_sum_b),
               size = 5,
               family = "Overpass",
@@ -430,5 +499,26 @@ for(i in first_day:latest_day) {
   ggsave(glue::glue(here::here("plots", "series_line", "corona_line_yday_{sprintf('%03d', i)}.pdf")),
          width = 28, height = 21, device = cairo_pdf)
 }
+
+
+if(i == latest_day) {
+  ggsave(glue::glue(here::here("plots", "series_line", "corona_line_yday_latest.pdf")),
+         width = 28, height = 21, device = cairo_pdf)
+}
+
+## convert pdf's to png's
+setwd(here::here("plots", "series_line"))
+pdfs <- list.files(here::here("plots", "series_line"), pattern = "*.pdf")
+
+for(pdf in pdfs) {
+  pdf_convert(pdf = here::here("plots", "series_line", pdf), 
+              format = "png", dpi = 250)
+}
+
+## convert png's to gif
+system("magick.exe -delay 30 *.png -morph 3 -delay 800 *latest_1.png -loop 0 corona_line_latest.gif")
+
+pdf_convert(pdf = here::here("plots", "series_line", "corona_line_yday_latest.pdf"), 
+              format = "png", dpi = 350)
 ```
 
