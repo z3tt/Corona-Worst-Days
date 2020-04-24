@@ -73,6 +73,7 @@ df_corona_days <-
     state = `Province/State`,
     deaths = Deaths
   ) %>% 
+  filter(date < max(date))
   group_by(country, date) %>% 
   summarize(deaths = sum(deaths, na.rm = T)) %>% 
   group_by(country) %>%
@@ -177,7 +178,7 @@ fig_height = 24
 
 subtitle_lab <- "<b>Each panel shows the trajectory of confirmed deaths due to COVID-19 as percentage of daily deaths relative to the <i style='color:#c93a6e;'>worst day so far</i> for countries with at least 50 reported deaths.</b><span style='font-size:18pt;'><br><br>For each day, starting with the date of first reported death, the 7-day rolling average of confimed deaths per day is divided by the <b style='color:#c93a6e;'>highest average number of daily deaths so far defined as 100%</b>.<br>The text labels show the day of the first cofirmed death due to COVID-19 and the overall death toll per country.</span>"
 
-caption_lab <- "**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**<br>Note: Charts contain all confirmed deaths due to COVID-19 since January 22<sup>nd</sup> to April 20<sup>th</sup> 2020 for countries with 50 or more deaths.<br>* The deaths reported on April 17<sup>th</sup>in Wuhan, China, have been added proportionally to the confirmed daily deaths until that date."
+caption_lab <- "**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**<br>Note: Charts contain all confirmed deaths due to COVID-19 since January 22<sup>nd</sup> to April 23<sup>rd</sup> 2020 for countries with 50 or more deaths.<br>* The deaths reported on April 17<sup>th</sup>in Wuhan, China, have been added proportionally to the confirmed daily deaths until that date."
 
 label_col <- c("#f2eaa8", "#ffd08e", "#ffa679", "#f67b77", "#e15383")
 ```
@@ -271,7 +272,7 @@ f <-
          aes(day_rel, rel, 
              group = country)) +
     ## all trajectories
-    geom_line(alpha = .35,
+    geom_line(alpha = .25,
               size = .7) +
     ## all worst days as dots
     geom_point(data = dff %>% filter(yday == latest_day),
@@ -427,6 +428,26 @@ for(i in first_day:latest_day) {
     ggplot(df, 
            aes(day_rel, rel, 
                group = country)) +
+      ## all trajectories
+      geom_line(alpha = .2,
+                size = .7) +
+      ## all worst days as dots
+      geom_point(data = df %>% filter(yday == latest_day),
+                 alpha = 1,
+                 size = 1) +
+      gghighlight(use_direct_label = F,
+                  unhighlighted_params = list(color = "grey80")) +
+      facet_wrap(~ country, ncol = 8, drop = F) +
+      coord_cartesian(clip = "off") +
+      scale_x_continuous(expand = c(0, 0),
+                         limits = c(-13, latest_rel + 11),
+                         breaks = seq(0, 80, by = 20)) + 
+      scale_y_continuous(expand = c(.003, .003),
+                         limits = c(0, 1.08),
+                         labels = scales::percent_format())
+  
+  f <- 
+    f +
       ## trajectory highlighted
       geom_line(size = 1.4, color = "grey20") +
       ## point worst day highlighted
@@ -484,14 +505,6 @@ for(i in first_day:latest_day) {
                 hjust = 1,
                 nudge_x = -1.75,
                 nudge_y = .07) +
-      facet_wrap(~ country, ncol = 8, drop = F) +
-      coord_cartesian(clip = "off") +
-      scale_x_continuous(expand = c(0, 0),
-                         limits = c(-13, latest_rel + 11),
-                         breaks = seq(0, 100, by = 20)) + 
-      scale_y_continuous(expand = c(.003, .003),
-                         limits = c(0, 1.08),
-                         labels = scales::percent_format()) +
       rcartocolor::scale_color_carto_c(palette = "PinkYl", guide = F) +
       labs(x = "Number of days since first confirmed death due to COVID-19",
            y = "COVID-19 death cases relative to each country's highest average daily death toll so far", 

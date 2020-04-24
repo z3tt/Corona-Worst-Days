@@ -69,6 +69,7 @@ df_corona_days <-
     lat = Lat,
     lng = Long
   ) %>% 
+  ilter(date < max(date)) %>% 
   group_by(country, date) %>% 
   summarize(
     deaths = sum(deaths, na.rm = T),
@@ -247,7 +248,7 @@ for(i in first_day:latest_day) {
       coord_flip() +
       scale_x_discrete(expand = c(.001, .001)) +
       scale_y_continuous(expand = c(.001, 0.01),
-                         limits = c(18.1, latest_day + 7.7),
+                         limits = c(18.1, latest_day + 7.9),
                          sec.axis = dup_axis(),
                          breaks = dates,
                          labels = dates_lab) + 
@@ -438,7 +439,7 @@ for(i in first_day:latest_day) {
       coord_flip() +
       scale_x_discrete(expand = c(.001, 0.01)) +
       scale_y_continuous(expand = c(.001, 0.01),
-                         limits = c(18.1, latest_day + 7.7),
+                         limits = c(18.1, latest_day + 7.9),
                          sec.axis = dup_axis(),
                          breaks = dates,
                          labels = dates_lab) + 
@@ -631,7 +632,7 @@ for(i in first_day:latest_day) {
       coord_flip() +
       scale_x_discrete(expand = c(.001, 0.01)) +
       scale_y_continuous(expand = c(.001, 0.01),
-                         limits = c(18.1, latest_day + 7.7),
+                         limits = c(18.1, latest_day + 7.9),
                          sec.axis = dup_axis(),
                          breaks = dates,
                          labels = dates_lab) + 
@@ -839,7 +840,7 @@ ggplot(df,
   coord_flip() +
   scale_x_discrete(expand = c(.001, 0.01)) +
   scale_y_continuous(expand = c(.001, 0.01),
-                     limits = c(18.1, latest_day + 7.7),
+                     limits = c(18.1, latest_day + 7.9),
                      sec.axis = dup_axis(),
                      breaks = dates,
                      labels = dates_lab) + 
@@ -932,7 +933,7 @@ df %>%
     coord_flip() +
     scale_x_discrete(expand = c(.001, 0.01)) +
     scale_y_continuous(expand = c(.001, 0.01),
-                       limits = c(40.2, latest_day + 7.62),
+                       limits = c(40.2, latest_day + 7.9),
                        sec.axis = dup_axis(),
                        breaks = dates,
                        labels = dates_lab) + 
