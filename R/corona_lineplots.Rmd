@@ -1,5 +1,5 @@
 ---
-title: "Corona Worst-Day Lineplots"
+title: "Corona Worst-Day Trajectories"
 author: "Cedric Scherer"
 date: "13th of April 2020"
 output:
@@ -186,69 +186,10 @@ label_col <- c("#f2eaa8", "#ffd08e", "#ffa679", "#f67b77", "#e15383")
 ```
 
 
-# Global Trajectory
 
-```{r overview-plot}
-df <- 
-  df_corona_roll %>% 
-  filter(sum >= 50) %>% 
-  mutate(
-    country_lump = if_else(country %in% c("Worldwide", "China*", "Italy", "Spain", "France", 
-                                         "Germany", "United Kingdom", "United States"), 
-                          country, "Other"),
-    country_lump = fct_reorder(country_lump, -day_first)
-  )
+## Facets: Trajectories per Country
 
-ggplot(df, 
-       aes(yday, rel, 
-           group = country,
-           color = country_lump)) +
-  ## other countries
-  geom_line(data = df %>% filter(country_lump == "Other"),
-            color = "grey75",
-            alpha = .2) +
-  ## worst average days other countries
-  geom_point(data = df %>% filter(country_lump != "Worldwide" & rel == 1), 
-             color = "grey90") +
-  ## highlighted countries (lines)
-  geom_line(data = df %>% filter(country_lump != "Other")) +
-  ## worst average days highlighted countries
-  geom_point(data = df %>% filter(!country_lump %in% c("Worldwide", "Other") & rel == 1)) +
-  ## highlighted countries (points)
-  geom_point(data = df %>% filter(country_lump != "Other" & yday == latest_day), 
-             size = 1.8,
-             color = "black",
-             stroke = .6) +
-  geom_point(data = df %>% filter(country_lump != "Other" & yday == latest_day),
-             size = 1.2) +
-  ## worldwide
-  geom_line(data = df %>% filter(country_lump == "Worldwide"),
-            color = "black",
-            size = 1) +
-  geom_point(data = df %>% filter(country_lump == "Worldwide" & yday == latest_day),
-             size = 4.5,
-             shape = 21,
-             color = "white",
-             fill = "black",
-             stroke = .6) + #278f84
-  geom_point(data = df %>% filter(country_lump == "Worldwide" & yday == latest_day),
-             aes(fill = rel),
-             shape = 21,
-             stroke = 0,
-             size = 3) +
-  coord_cartesian(clip = "off") +
-  scale_x_continuous(expand = c(0, 0),
-                     limits = c(first_day - 5, latest_day + 5)) +
-  rcartocolor::scale_fill_carto_c(palette = "PinkYl", guide = F)
-
-ggsave(here::here("plots", "corona_line_overview.pdf"),
-       width = 9.2, height = 6.7, device = cairo_pdf)
-```
-
-
-# Facets
-
-```{r facets-plot, fig.width = 27.5, fig.height = 20}
+```{r facets-plot, fig.width = fig_width, fig.height = fig_height}
 ## only countries with more than 50 or more confirmed deaths
 dff <- 
   df_corona_roll %>% 
@@ -394,9 +335,71 @@ pdf_convert(pdf = here::here("plots", "corona_line_facet.pdf"),
               format = "png", dpi = 350)
 ```
 
-## Animation
 
-```{r facets-animation}
+## Plot: Global Trajectory
+
+```{r overview-plot}
+df <- 
+  df_corona_roll %>% 
+  filter(sum >= 50) %>% 
+  mutate(
+    country_lump = if_else(country %in% c("Worldwide", "China*", "Italy", "Spain", "France", 
+                                         "Germany", "United Kingdom", "United States"), 
+                          country, "Other"),
+    country_lump = fct_reorder(country_lump, -day_first)
+  )
+
+ggplot(df, 
+       aes(yday, rel, 
+           group = country,
+           color = country_lump)) +
+  ## other countries
+  geom_line(data = df %>% filter(country_lump == "Other"),
+            color = "grey75",
+            alpha = .2) +
+  ## worst average days other countries
+  geom_point(data = df %>% filter(country_lump != "Worldwide" & rel == 1), 
+             color = "grey90") +
+  ## highlighted countries (lines)
+  geom_line(data = df %>% filter(country_lump != "Other")) +
+  ## worst average days highlighted countries
+  geom_point(data = df %>% filter(!country_lump %in% c("Worldwide", "Other") & rel == 1)) +
+  ## highlighted countries (points)
+  geom_point(data = df %>% filter(country_lump != "Other" & yday == latest_day), 
+             size = 1.8,
+             color = "black",
+             stroke = .6) +
+  geom_point(data = df %>% filter(country_lump != "Other" & yday == latest_day),
+             size = 1.2) +
+  ## worldwide
+  geom_line(data = df %>% filter(country_lump == "Worldwide"),
+            color = "black",
+            size = 1) +
+  geom_point(data = df %>% filter(country_lump == "Worldwide" & yday == latest_day),
+             size = 4.5,
+             shape = 21,
+             color = "white",
+             fill = "black",
+             stroke = .6) + #278f84
+  geom_point(data = df %>% filter(country_lump == "Worldwide" & yday == latest_day),
+             aes(fill = rel),
+             shape = 21,
+             stroke = 0,
+             size = 3) +
+  coord_cartesian(clip = "off") +
+  scale_x_continuous(expand = c(0, 0),
+                     limits = c(first_day - 5, latest_day + 5)) +
+  rcartocolor::scale_fill_carto_c(palette = "PinkYl", guide = F)
+
+ggsave(here::here("plots", "corona_line_overview.pdf"),
+       width = 9.2, height = 6.7, device = cairo_pdf)
+```
+
+
+
+## Animation: Trajectories per Country
+
+```{r facets-animation, fig.width = fig_width, fig.height = fig_height}
 dfa <- 
   df_corona_roll %>% 
   filter(
@@ -565,5 +568,11 @@ for(pdf in pdfs) {
 system("magick.exe -delay 20 *.png -delay 100 *latest_1.png -loop 0 corona_line_latest.gif")
 
 pdf_convert(pdf = here::here("plots", "series_line", "corona_line_yday_latest.pdf"), 
-              format = "png", dpi = 350)
+            format = "png", dpi = 350)
+```
+
+***
+
+```{r session-info}
+sessionInfo()
 ```

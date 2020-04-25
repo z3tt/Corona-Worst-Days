@@ -1,7 +1,7 @@
 ---
-title: "Corona Worst-Day Lineplots"
+title: "Corona Worst-Day Hexagonal Tile Maps"
 author: "Cedric Scherer"
-date: "13th of April 2020"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   html_document:
   theme: paper
@@ -202,79 +202,10 @@ df_world_tile <-
   )
 ```
 
-## Day of first Death
 
-```{r}
-df_corona_tile <- 
-  df_corona_roll %>% 
-  group_by(country) %>% 
-  filter(yday == min(yday[which(daily > 1)])) %>%
-  ungroup() %>% 
-  full_join(df_world_tile) %>% 
-  filter(!is.na(name)) %>% 
-  mutate(
-    text_col = if_else(yday <= latest_day - 10, "A", "B")
-  )
-  
-df_corona_tile %>% 
-  ggplot(aes(x, y, 
-             fill = yday)) + 
-    geom_tile(color = "white",
-              size = .5) +
-    geom_text(data = df_corona_tile %>% filter(!is.na(day_rel)),
-              aes(label = alpha.3,
-                  color = text_col), 
-              family = "Overpass",
-              fontface = "bold") +
-    # geom_text(data = df_corona_tile %>% filter(!is.na(rday_el)),
-    #             aes(label = alpha.3,
-    #                 color = day_rel,
-    #                 color = after_scale(colorspace::darken(color, .5, space = "HLS"))), 
-    #             family = "Overpass",
-    #             fontface = "bold") +
-    # geom_text(data = df_corona_tile %>% filter(!is.na(day_rel), day_rel < 25),
-    #             aes(label = alpha.3,
-    #                 color = day_rel,
-    #                 color = after_scale(colorspace::lighten(color, .5, space = "HLS"))), 
-    #             family = "Overpass",
-    #             fontface = "bold") +
-    geom_text(data = df_corona_tile %>% filter(is.na(day_rel)),
-                aes(label = alpha.3), 
-                family = "Overpass",
-                color = "#99c8b9") +
-    coord_equal(clip = "off") +
-    scale_x_continuous(expand = c(.001, .001)) +
-    scale_y_reverse() +
-    scale_color_manual(values = c("white", "grey60"), guide = F) +
-    scale_fill_viridis_c(option = "magma",
-                         na.value = "#f0f7f5",
-                         name = "",
-                         breaks = dates,
-                         labels = dates_lab) +
-    guides(fill = guide_colorbar(direction = "horizontal",
-                                 title.position = "top",
-                                 title.hjust = .5,
-                                 label.position = "top",
-                                 label.hjust = .5,
-                                 barwidth = unit(54, "lines"),
-                                 barheight = unit(.75, "lines"))) +
-    labs(title = "Date of the First Confirmed Death Due to COVID-19",
-         caption = "Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io") +
-    theme(legend.position = "top",
-          legend.text = element_text(family = "Overpass", size = 15))
+## Animation: Worst-Day Global Pattern 
 
-setwd(here::here("plots"))
-ggsave(glue::glue(here::here("plots", "corona_hex_date.pdf")),
-       width = fig_width - 2, height = fig_height, device = cairo_pdf)
-
-pdf_convert(pdf = here::here("plots", "corona_hex_date.pdf"), 
-              format = "png", dpi = 750)
-```
-
-
-## Animation
-
-```{r facets-animation}
+```{r animation-hex-map, fig.width = fig_width, fig.height = fig_height}
 for(i in first_day:latest_day) {
   print(i)
   
@@ -361,4 +292,80 @@ system("magick.exe -delay 40 *.png -delay 200 *latest_1.png -loop 0 corona_hex_l
 
 pdf_convert(pdf = here::here("plots", "series_hex", "corona_hex_yday_latest.pdf"), 
               format = "png", dpi = 750)
+```
+
+
+## Plot: Date of First Death
+
+```{r date-first-death-hex-map, fig.width = fig_width - 2, fig.height = fig_height}
+df_corona_tile <- 
+  df_corona_roll %>% 
+  group_by(country) %>% 
+  filter(yday == min(yday[which(daily > 1)])) %>%
+  ungroup() %>% 
+  full_join(df_world_tile) %>% 
+  filter(!is.na(name)) %>% 
+  mutate(
+    text_col = if_else(yday <= latest_day - 10, "A", "B")
+  )
+  
+df_corona_tile %>% 
+  ggplot(aes(x, y, 
+             fill = yday)) + 
+    geom_tile(color = "white",
+              size = .5) +
+    geom_text(data = df_corona_tile %>% filter(!is.na(day_rel)),
+              aes(label = alpha.3,
+                  color = text_col), 
+              family = "Overpass",
+              fontface = "bold") +
+    # geom_text(data = df_corona_tile %>% filter(!is.na(rday_el)),
+    #             aes(label = alpha.3,
+    #                 color = day_rel,
+    #                 color = after_scale(colorspace::darken(color, .5, space = "HLS"))), 
+    #             family = "Overpass",
+    #             fontface = "bold") +
+    # geom_text(data = df_corona_tile %>% filter(!is.na(day_rel), day_rel < 25),
+    #             aes(label = alpha.3,
+    #                 color = day_rel,
+    #                 color = after_scale(colorspace::lighten(color, .5, space = "HLS"))), 
+    #             family = "Overpass",
+    #             fontface = "bold") +
+    geom_text(data = df_corona_tile %>% filter(is.na(day_rel)),
+                aes(label = alpha.3), 
+                family = "Overpass",
+                color = "#99c8b9") +
+    coord_equal(clip = "off") +
+    scale_x_continuous(expand = c(.001, .001)) +
+    scale_y_reverse() +
+    scale_color_manual(values = c("white", "grey60"), guide = F) +
+    scale_fill_viridis_c(option = "magma",
+                         na.value = "#f0f7f5",
+                         name = "",
+                         breaks = dates,
+                         labels = dates_lab) +
+    guides(fill = guide_colorbar(direction = "horizontal",
+                                 title.position = "top",
+                                 title.hjust = .5,
+                                 label.position = "top",
+                                 label.hjust = .5,
+                                 barwidth = unit(54, "lines"),
+                                 barheight = unit(.75, "lines"))) +
+    labs(title = "Date of the First Confirmed Death Due to COVID-19",
+         caption = "Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io") +
+    theme(legend.position = "top",
+          legend.text = element_text(family = "Overpass", size = 15))
+
+setwd(here::here("plots"))
+ggsave(glue::glue(here::here("plots", "corona_hex_date.pdf")),
+       width = fig_width - 2, height = fig_height, device = cairo_pdf)
+
+pdf_convert(pdf = here::here("plots", "corona_hex_date.pdf"), 
+              format = "png", dpi = 750)
+```
+
+***
+
+```{r session-info}
+sessionInfo()
 ```

@@ -1,7 +1,7 @@
 ---
-title: "Corona Worst-Day Animation"
+title: "Corona Worst-Day Heatmap"
 author: "Cedric Scherer"
-date: "29th of March 2020"
+date: date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   html_document:
   theme: paper
@@ -973,3 +973,8 @@ pdf_convert(pdf = here::here("plots", "corona_trend_yday_latest_compact.pdf"),
             format = "png", dpi = 500)
 ```
 
+***
+
+```{r session-info}
+sessionInfo()
+```
