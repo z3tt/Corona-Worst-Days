@@ -73,7 +73,6 @@ df_corona_days <-
     state = `Province/State`,
     deaths = Deaths
   ) %>% 
-  filter(date < max(date))
   group_by(country, date) %>% 
   summarize(deaths = sum(deaths, na.rm = T)) %>% 
   group_by(country) %>%
@@ -96,6 +95,8 @@ df_corona_days <-
       country == "Korea, South" ~ "South Korea",
       country == "Bosnia and Herzegovina" ~ "Bosnia–Herzegovina",
       country == "China" ~ "China*",
+      country == "Congo (Kinshasa)" ~ "DR Congo",
+      country == "Congo (Brazzaville)" ~ "Congo-Brazzaville",
       TRUE ~ country
     ),
     country = str_replace(country, " and ", " & ")
@@ -142,7 +143,7 @@ df_corona_china_fix <-
 
 
 ## calculate rolling average and add label column
-df_corona_g <- 
+df_corona_roll <- 
   df_corona_days %>% 
   filter(!(country == "China*" & yday <= 108)) %>% 
   bind_rows(df_corona_world) %>% 
@@ -156,6 +157,7 @@ df_corona_g <-
     max = max(roll, na.rm = T),
     rel = roll / max,
     rel = if_else(is.na(rel), 0, rel),
+    rel = if_else(rel < 0, 0, rel),
     sum = sum(daily, na.rm = T),
     day_first = min(yday[which(rel > 0)]),
     day_rel = yday - day_first
@@ -169,16 +171,16 @@ df_corona_g <-
   ) %>% 
   ungroup()
 
-first_day <- min(df_corona_g$yday)
-latest_day <- max(df_corona_g$yday)
-latest_rel <- max(df_corona_g$day_rel)
+first_day <- min(df_corona_roll$yday)
+latest_day <- max(df_corona_roll$yday)
+latest_rel <- max(df_corona_roll$day_rel)
 
 fig_width = 29
 fig_height = 24
 
 subtitle_lab <- "<b>Each panel shows the trajectory of confirmed deaths due to COVID-19 as percentage of daily deaths relative to the <i style='color:#c93a6e;'>worst day so far</i> for countries with at least 50 reported deaths.</b><span style='font-size:18pt;'><br><br>For each day, starting with the date of first reported death, the 7-day rolling average of confimed deaths per day is divided by the <b style='color:#c93a6e;'>highest average number of daily deaths so far defined as 100%</b>.<br>The text labels show the day of the first cofirmed death due to COVID-19 and the overall death toll per country.</span>"
 
-caption_lab <- "**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**<br>Note: Charts contain all confirmed deaths due to COVID-19 since January 22<sup>nd</sup> to April 23<sup>rd</sup> 2020 for countries with 50 or more deaths.<br>* The deaths reported on April 17<sup>th</sup>in Wuhan, China, have been added proportionally to the confirmed daily deaths until that date."
+caption_lab <- "Note: Charts contain all confirmed deaths due to COVID-19 since January 22<sup>nd</sup> to April 23<sup>rd</sup> 2020 for countries with 50 or more deaths.<br>* The deaths reported on April 17<sup>th</sup> in Wuhan, China, have been added proportionally to the confirmed daily deaths until that date.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**"
 
 label_col <- c("#f2eaa8", "#ffd08e", "#ffa679", "#f67b77", "#e15383")
 ```
@@ -188,7 +190,7 @@ label_col <- c("#f2eaa8", "#ffd08e", "#ffa679", "#f67b77", "#e15383")
 
 ```{r overview-plot}
 df <- 
-  df_corona_g %>% 
+  df_corona_roll %>% 
   filter(sum >= 50) %>% 
   mutate(
     country_lump = if_else(country %in% c("Worldwide", "China*", "Italy", "Spain", "France", 
@@ -249,7 +251,7 @@ ggsave(here::here("plots", "corona_line_overview.pdf"),
 ```{r facets-plot, fig.width = 27.5, fig.height = 20}
 ## only countries with more than 50 or more confirmed deaths
 dff <- 
-  df_corona_g %>% 
+  df_corona_roll %>% 
   filter(
     sum >= 50, 
     country != "Worldwide"
@@ -381,7 +383,7 @@ f +
        title = "<b style='color:#c93a6e;'>The Worst Days:</b> Peaks in Confirmed Daily Deaths Due to COVID-19 So Far",
        subtitle = subtitle_lab,
        caption = caption_lab) +
-  theme(axis.title.x = element_text(hjust = 0),
+  theme(axis.title.x = element_text(hjust = .5),
         axis.text.y = element_text(colour = label_col, face = "bold"))
 
 ggsave(here::here("plots", "corona_line_facet.pdf"),
@@ -396,7 +398,7 @@ pdf_convert(pdf = here::here("plots", "corona_line_facet.pdf"),
 
 ```{r facets-animation}
 dfa <- 
-  df_corona_g %>% 
+  df_corona_roll %>% 
   filter(
     sum >= 50, 
     country != "Worldwide"
