@@ -1,4 +1,4 @@
-# Corona Daily Deaths Animation
+# The Worst Days So Far: Confirmed Daily Deaths due to COVID-19
 
 Repository of the latest animation showing confirmed daily deaths worldwide and per country relative to each's worst day. <br>
 * You can find more background on the idea, pros and cons of this visualization and some general thoughts on how to design visualizations dealing with COVID-19 on [my blog](https://cedricscherer.netlify.com/2020/03/31/corona-covid-19-death-tolls-worst-day-so-far/).<br><br>
