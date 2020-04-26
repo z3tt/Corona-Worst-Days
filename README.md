@@ -1,23 +1,53 @@
-# The Worst Days: Confirmed Daily Deaths Due to COVID-19 So Far
+# The Worst Days So Far: Confirmed Daily Deaths due to COVID-19
 
-Repository of the latest animation showing confirmed daily deaths worldwide and per country relative to each's worst day. <br>
+Repository of the latest visualizations showing confirmed daily deaths worldwide and per country relative to each's worst day. <br>
+
 * You can find more background on the idea, pros and cons of this visualization and some general thoughts on how to design visualizations dealing with COVID-19 on [my blog](https://cedricscherer.netlify.com/2020/03/31/corona-covid-19-death-tolls-worst-day-so-far/).<br><br>
-* I created the visualizations with the help of the programming language `R` using the graphic library `ggplot2` and the `magick` package.<br><br>
 
-## Countries ranked by day of first confirmed death
+* All visualizations include only countries with 50 or more confirmed daily deaths due to COIVD-19.
 
-![./plots/corona_begin_latest.gif](https://github.com/Z3tt/Corona-Daily-Deaths-Animation/raw/master/plots/corona_begin_latest.gif)<br><br><br>
-
-## Countries ranked by total number of confirmed deaths
-
-![./plots/corona_sum_latest.gif](https://github.com/Z3tt/Corona-Daily-Deaths-Animation/raw/master/plots/corona_sum_latest.gif)<br><br><br>
+* On April 17th 2020, officials in Wuhan, China, revised the city´s coronavirus death toll retrospectively; the deaths have been added proportionally to the daily confirmed deaths of China until that date.
 
 ***
 
-### Static versions
+## Heatmaps
 
-![./plots/corona_begin_yday_latest_1.png](https://raw.githubusercontent.com/Z3tt/Corona-Daily-Deaths-Animation/master/plots/corona_begin_yday_latest_1.png)<br><br>
-![./plots/corona_sum_yday_latest_1.png](https://raw.githubusercontent.com/Z3tt/Corona-Daily-Deaths-Animation/master/plots/corona_sum_yday_latest_1.png)<br><br>
+### Countries ranked by days since worst day so far
+
+![./plots/corona_heat_trend_latest_1.png](https://github.com/Z3tt/Corona-Daily-Deaths-Animation/raw/master/plots/corona_heat_trend_latest_1.png)<br><br><br>
+
+---
+
+### Countries ranked by day of first confirmed death
+
+![./plots/corona_heat_begin_latest_1.png](https://raw.githubusercontent.com/Z3tt/Corona-Daily-Deaths-Animation/master/plots/corona_heat_begin_latest_1.png)<br><br>
+
+##### Animation:
+![./plots/corona_heat_begin_latest.gif](https://github.com/Z3tt/Corona-Daily-Deaths-Animation/raw/master/plots/corona_heat_begin_latest.gif)<br><br><br>
+
+---
+
+### Countries ranked by total number of confirmed deaths
+
+![./plots/corona_heat_sum_latest_1.png](https://raw.githubusercontent.com/Z3tt/Corona-Daily-Deaths-Animation/master/plots/corona_heat_sum_latest_1.png)<br><br>
+
+##### Animation:
+![./plots/corona_heat_sum_latest.gif](https://github.com/Z3tt/Corona-Daily-Deaths-Animation/raw/master/plots/corona_heat_sum_latest.gif)<br><br><br>
+
+***
+
+## Trajectories
+
+
+
+
+***
+
+## Tools:
+
+* I prepared the data with the help of the programming language `R` using the `tidyverse` package collection and the packages `lubridate` and `zoo`
+
+* I created the visualizations using the `R` graphic library `ggplot2` plus the packages `ggtext`, `showtext`, `rcartocolor`, and `gghighlight`. The animations were created from the static plots using `ImageMagick` in R via the  `magick` package.<br><br>
 
 ***
 
