@@ -16,7 +16,7 @@ Repository of the latest visualizations showing confirmed daily deaths worldwide
 
 ![./plots/corona_heat_trend_latest_1.png](https://github.com/Z3tt/Corona-Daily-Deaths-Animation/raw/master/plots/corona_heat_trend_latest_1.png)<br><br><br>
 
----
+##
 
 ### Countries ranked by day of first confirmed death
 
@@ -25,7 +25,7 @@ Repository of the latest visualizations showing confirmed daily deaths worldwide
 ##### Animation:
 ![./plots/corona_heat_begin_latest.gif](https://github.com/Z3tt/Corona-Daily-Deaths-Animation/raw/master/plots/corona_heat_begin_latest.gif)<br><br><br>
 
----
+##
 
 ### Countries ranked by total number of confirmed deaths
 
