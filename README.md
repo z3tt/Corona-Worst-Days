@@ -22,7 +22,7 @@ Repository of the latest visualizations showing confirmed daily deaths worldwide
 
 ![./plots/corona_heat_begin_latest_1.png](https://raw.githubusercontent.com/Z3tt/Corona-Daily-Deaths-Animation/master/plots/corona_heat_begin_latest_1.png)<br><br>
 
-##### Animation:
+#### As Animation:
 ![./plots/corona_heat_begin.gif](https://github.com/Z3tt/Corona-Daily-Deaths-Animation/raw/master/plots/corona_heat_begin.gif)<br><br>
 
 ##
@@ -31,28 +31,28 @@ Repository of the latest visualizations showing confirmed daily deaths worldwide
 
 ![./plots/corona_heat_sum_latest_1.png](https://raw.githubusercontent.com/Z3tt/Corona-Daily-Deaths-Animation/master/plots/corona_heat_sum_latest_1.png)<br><br>
 
-##### Animation:
+#### As Animation:
 ![./plots/corona_heat_sum.gif](https://github.com/Z3tt/Corona-Daily-Deaths-Animation/raw/master/plots/corona_heat_sum.gif)<br><br>
 
 ***
 
 ## Trajectories
 
-![./plots/corona_trajectory_facet_1.png](https://github.com/Z3tt/Corona-Daily-Deaths-Animation/raw/master/plots/corona_trajectory_facet_1.png)<br><br>
+![./plots/corona_trajectory_facet_1.png](https://github.com/Z3tt/Corona-Daily-Deaths-Animation/raw/master/plots/corona_trajectory_facet_1.png)<br>
 
 ***
 
 ## World Tile Map
 
-![./plots/corona_map_latest_1.png](https://github.com/Z3tt/Corona-Daily-Deaths-Animation/raw/master/plots/corona_map_latest_1.png)<br><br>
+![./plots/corona_map_latest_1.png](https://github.com/Z3tt/Corona-Daily-Deaths-Animation/raw/master/plots/corona_map_latest_1.png)<br>
 
-##### Animation:
-![./plots/corona_map.gif](https://github.com/Z3tt/Corona-Daily-Deaths-Animation/raw/master/plots/corona_map.gif)<br><br>
+#### As Animation:
+![./plots/corona_map.gif](https://github.com/Z3tt/Corona-Daily-Deaths-Animation/raw/master/plots/corona_map.gif)<br>
 
 ##
 
 ### World Tile Map showing Day of First Confirmed Death
-![./plots/corona_map_date_1.png](https://github.com/Z3tt/Corona-Daily-Deaths-Animation/raw/master/plots/corona_map_date_1.png)<br><br>
+![./plots/corona_map_date_1.png](https://github.com/Z3tt/Corona-Daily-Deaths-Animation/raw/master/plots/corona_map_date_1.png)<br>
 
 ***
 
