@@ -1,4 +1,4 @@
-# The Worst Days So Far: Confirmed Daily Deaths due to COVID-19
+# The Worst Days: Confirmed Daily Deaths due to COVID-19 So Far
 
 Repository of the latest visualizations showing confirmed daily deaths worldwide and per country relative to each's worst day. <br>
 
