@@ -169,10 +169,10 @@ df_dates <-
   summarize(label = unique(glue::glue("{month(date, label = T)} {day(date)}")))
 
 dates <- df_dates$yday
-dates_lab <- df_dates$label
+(dates_lab <- df_dates$label)
 
-fig_width <- 26.3
-fig_height <- 15.8
+fig_width <- 26.9
+fig_height <- 16.8
 ```
 
 
@@ -245,14 +245,14 @@ for(i in first_day:latest_day) {
                     vjust = .6) +
       geom_segment(aes(x = n_countries - .5,
                        xend = n_countries - .5,
-                       y = 18.1,
+                       y = 18,
                        yend = i + .5),
                    color = "grey40",
                    size = .2) +
       coord_flip() +
       scale_x_discrete(expand = c(.001, .001)) +
       scale_y_continuous(expand = c(.001, 0.01),
-                         limits = c(18.1, latest_day+ 8.2),
+                         limits = c(18, latest_day + 8.2),
                          sec.axis = dup_axis(),
                          breaks = dates,
                          labels = dates_lab) + 
@@ -369,7 +369,7 @@ for(pdf in pdfs) {
 }
 
 ## convert png's to gif
-system("magick.exe -delay 40 *.png -delay 800 *latest_1.png -loop 0 corona_heat_sum.gif")
+system("magick.exe -delay 30 *.png -delay 150 *latest_1.png -loop 0 corona_heat_sum.gif")
 
 pdf_convert(pdf = here::here("plots", "series_heat_sum", "corona_heat_sum_latest.pdf"), 
               format = "png", dpi = 700)
@@ -441,14 +441,14 @@ for(i in first_day:latest_day) {
                     vjust = .6) +
       geom_segment(aes(x = n_countries - .5,
                        xend = n_countries - .5,
-                       y = 18.9,
+                       y = 18,
                        yend = i + .5),
                    color = "grey40",
                    size = .2) +
       coord_flip() +
       scale_x_discrete(expand = c(.001, 0.01)) +
       scale_y_continuous(expand = c(.001, 0.01),
-                         limits = c(18.1, latest_day+ 8.2),
+                         limits = c(18, latest_day + 8.2),
                          sec.axis = dup_axis(),
                          breaks = dates,
                          labels = dates_lab) + 
@@ -566,7 +566,7 @@ for(pdf in pdfs) {
 }
 
 ## convert png's to gif
-system("magick.exe -delay 40 *.png -delay 800 *latest_1.png -loop 0 corona_heat_begin.gif")
+system("magick.exe -delay 30 *.png -delay 150 *latest_1.png -loop 0 corona_heat_begin.gif")
 
 pdf_convert(pdf = here::here("plots", "series_heat_begin", "corona_heat_begin_latest.pdf"), 
               format = "png", dpi = 700)
@@ -640,14 +640,14 @@ for(i in first_day:latest_day) {
                     vjust = .6) +
       geom_segment(aes(x = n_countries - .5,
                        xend = n_countries - .5,
-                       y = 18.9,
+                       y = 18,
                        yend = i + .5),
                    color = "grey20",
                    size = .4) +
       coord_flip() +
       scale_x_discrete(expand = c(.001, 0.01)) +
       scale_y_continuous(expand = c(.001, 0.01),
-                         limits = c(18.1, latest_day+ 8.2),
+                         limits = c(18, latest_day + 8.2),
                          sec.axis = dup_axis(),
                          breaks = dates,
                          labels = dates_lab) + 
@@ -765,7 +765,7 @@ for(pdf in pdfs) {
 }
 
 ## convert png's to gif
-system("magick.exe -delay 40 *.png -delay 800 *latest_1.png -loop 0 corona_heat_lng.gif")
+system("magick.exe -delay 30 *.png -delay 150 *latest_1.png -loop 0 corona_heat_lng.gif")
 
 pdf_convert(pdf = here::here("plots", "series_heat_lng", "corona_heat_lng_latest.pdf"), 
               format = "png", dpi = 700)
@@ -823,7 +823,7 @@ ggplot(df,
                 vjust = .6) +
   geom_segment(aes(x = n_countries - .5,
                    xend = n_countries - .5,
-                   y = 18.15,
+                   y = 18,
                    yend = latest_day + .5),
                color = "grey40",
              size = .2) +
@@ -860,7 +860,7 @@ ggplot(df,
   coord_flip() +
   scale_x_discrete(expand = c(.001, 0.01)) +
   scale_y_continuous(expand = c(.001, 0.01),
-                     limits = c(18.1, latest_day+ 8.2),
+                     limits = c(18, latest_day + 8.2),
                      sec.axis = dup_axis(),
                      breaks = dates,
                      labels = dates_lab) + 

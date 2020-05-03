@@ -157,7 +157,7 @@ df_corona_roll <-
   ungroup()
 
 df_dates <-
-  df_corona_fct %>% 
+  df_corona_roll %>% 
   filter(date %in% c(min(date, na.rm = T),
                      ymd("2020-02-01"),
                      ymd("2020-02-15"),
@@ -344,6 +344,7 @@ df_corona_tile %>%
     scale_color_manual(values = c("white", "grey60"), guide = F) +
     scale_fill_viridis_c(option = "magma",
                          na.value = "#f0f7f5",
+                         limits = c(NA, max(dates)),
                          name = "",
                          breaks = dates,
                          labels = dates_lab) +
@@ -365,6 +366,7 @@ ggsave(glue::glue(here::here("plots", "corona_map_date.pdf")),
 
 pdf_convert(pdf = here::here("plots", "corona_map_date.pdf"), 
               format = "png", dpi = 750)
+```
 
 ***
 
