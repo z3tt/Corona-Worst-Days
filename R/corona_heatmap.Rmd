@@ -365,11 +365,11 @@ pdfs <- list.files(here::here("plots", "series_heat_sum"), pattern = "*.pdf")
 
 for(pdf in pdfs) {
   pdf_convert(pdf = here::here("plots", "series_heat_sum", pdf), 
-              format = "png", dpi = 250)
+              format = "png", dpi = 200)
 }
 
 ## convert png's to gif
-system("magick.exe -delay 30 *.png -delay 150 *latest_1.png -loop 0 corona_heat_sum.gif")
+system("magick.exe -delay 30 *.png -delay 120 *latest_1.png -loop 0 corona_heat_sum.gif")
 
 pdf_convert(pdf = here::here("plots", "series_heat_sum", "corona_heat_sum_latest.pdf"), 
               format = "png", dpi = 700)
@@ -562,11 +562,11 @@ pdfs <- list.files(here::here("plots", "series_heat_begin"), pattern = "*.pdf")
 
 for(pdf in pdfs) {
   pdf_convert(pdf = here::here("plots", "series_heat_begin", pdf), 
-              format = "png", dpi = 250)
+              format = "png", dpi = 200)
 }
 
 ## convert png's to gif
-system("magick.exe -delay 30 *.png -delay 150 *latest_1.png -loop 0 corona_heat_begin.gif")
+system("magick.exe -delay 30 *.png -delay 120 *latest_1.png -loop 0 corona_heat_begin.gif")
 
 pdf_convert(pdf = here::here("plots", "series_heat_begin", "corona_heat_begin_latest.pdf"), 
               format = "png", dpi = 700)
@@ -754,18 +754,18 @@ for(i in first_day:latest_day) {
   }
 }
 
-
+sw
 ## convert pdf's to png's
 setwd(here::here("plots", "series_heat_lng"))
 pdfs <- list.files(here::here("plots", "series_heat_lng"), pattern = "*.pdf")
 
 for(pdf in pdfs) {
   pdf_convert(pdf = here::here("plots", "series_heat_lng", pdf), 
-              format = "png", dpi = 250)
+              format = "png", dpi = 200)
 }
 
 ## convert png's to gif
-system("magick.exe -delay 30 *.png -delay 150 *latest_1.png -loop 0 corona_heat_lng.gif")
+system("magick.exe -delay 30 *.png -delay 120 *latest_1.png -loop 0 corona_heat_lng.gif")
 
 pdf_convert(pdf = here::here("plots", "series_heat_lng", "corona_heat_lng_latest.pdf"), 
               format = "png", dpi = 700)
