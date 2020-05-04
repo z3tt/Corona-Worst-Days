@@ -180,7 +180,7 @@ fig_height = 22
 
 subtitle_lab <- "<b>Each panel shows the trajectory of confirmed deaths due to COVID-19 as percentage of daily deaths relative to the <i style='color:#c93a6e;'>worst day so far</i> for countries with at least 100 reported deaths.</b><span style='font-size:18pt;'><br><br>For each day, starting with the date of first reported death, the 7-day rolling average of confimed deaths per day is divided by the <b style='color:#c93a6e;'>highest average number of daily deaths so far defined as 100%</b>.<br>The text labels show the day of the first cofirmed death due to COVID-19 and the overall death toll per country.</span>"
 
-caption_lab <- "Note: Charts contain all confirmed deaths due to COVID-19 from January 22<sup>nd</sup> to May 1<sup>st</sup> 2020 for countries with 100 or more deaths.<br>* The deaths reported on April 17<sup>th</sup> in Wuhan, China, have been added proportionally to the confirmed daily deaths until that date.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**"
+caption_lab <- "Note: Charts contain all confirmed deaths due to COVID-19 from January 22<sup>nd</sup> to May 2<sup>nd</sup> 2020 for countries with 100 or more deaths.<br>* The deaths reported on April 17<sup>th</sup> in Wuhan, China, have been added proportionally to the confirmed daily deaths until that date.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**"
 
 label_col <- c("#f2eaa8", "#ffd08e", "#ffa679", "#f67b77", "#e15383")
 ```
