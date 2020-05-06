@@ -11,7 +11,7 @@ editor_options:
 ---
   
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = F)
+knitr::opts_chunk$set(echo = TRUE, warning = F, fig.showtext = TRUE)
 Sys.setlocale("LC_TIME", "C")
 ```
 
@@ -29,6 +29,8 @@ library(showtext)
 font_add_google("Open Sans", "Open Sans")
 font_add_google("Overpass", "Overpass")
 font_add_google("Overpass Mono", "Overpass Mono")
+
+showtext_auto()
 
 theme_set(theme_minimal(base_size = 16, base_family = "Open Sans"))
 theme_update(axis.text.x = element_text(size = 14),
@@ -252,7 +254,7 @@ for(i in first_day:latest_day) {
       coord_flip() +
       scale_x_discrete(expand = c(.001, .001)) +
       scale_y_continuous(expand = c(.001, 0.01),
-                         limits = c(18, latest_day + 8.2),
+                         limits = c(17.8, latest_day + 8.2),
                          sec.axis = dup_axis(),
                          breaks = dates,
                          labels = dates_lab) + 
@@ -448,7 +450,7 @@ for(i in first_day:latest_day) {
       coord_flip() +
       scale_x_discrete(expand = c(.001, 0.01)) +
       scale_y_continuous(expand = c(.001, 0.01),
-                         limits = c(18, latest_day + 8.2),
+                         limits = c(17.8, latest_day + 8.2),
                          sec.axis = dup_axis(),
                          breaks = dates,
                          labels = dates_lab) + 
@@ -647,7 +649,7 @@ for(i in first_day:latest_day) {
       coord_flip() +
       scale_x_discrete(expand = c(.001, 0.01)) +
       scale_y_continuous(expand = c(.001, 0.01),
-                         limits = c(18, latest_day + 8.2),
+                         limits = c(17.8, latest_day + 8.2),
                          sec.axis = dup_axis(),
                          breaks = dates,
                          labels = dates_lab) + 
@@ -823,7 +825,7 @@ ggplot(df,
                 vjust = .6) +
   geom_segment(aes(x = n_countries - .5,
                    xend = n_countries - .5,
-                   y = 18,
+                   y = 17.8,
                    yend = latest_day + .5),
                color = "grey40",
              size = .2) +
@@ -860,7 +862,7 @@ ggplot(df,
   coord_flip() +
   scale_x_discrete(expand = c(.001, 0.01)) +
   scale_y_continuous(expand = c(.001, 0.01),
-                     limits = c(18, latest_day + 8.2),
+                     limits = c(17.8, latest_day + 8.2),
                      sec.axis = dup_axis(),
                      breaks = dates,
                      labels = dates_lab) + 

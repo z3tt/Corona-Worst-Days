@@ -30,6 +30,8 @@ font_add_google("Open Sans", "Open Sans")
 font_add_google("Overpass", "Overpass")
 font_add_google("Overpass Mono", "Overpass Mono")
 
+showtext_auto()
+
 theme_set(theme_minimal(base_size = 16, base_family = "Open Sans"))
 theme_update(axis.ticks = element_blank(),
              axis.title = element_blank(),
