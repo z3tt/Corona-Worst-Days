@@ -34,6 +34,7 @@ showtext_auto()
 
 theme_set(theme_minimal(base_size = 16, base_family = "Open Sans"))
 theme_update(axis.text.x = element_text(size = 14),
+             axis.text.x.top = element_text(margin = margin(b = 5)),
              axis.text.y = element_text(size = 12, face = "bold", color = "black"),
              axis.ticks.x = element_line(color = "grey40", size = .4),
              axis.ticks.y = element_blank(),
@@ -166,6 +167,7 @@ df_dates <-
                      ymd("2020-03-15"),
                      ymd("2020-04-01"),
                      ymd("2020-04-15"),
+                     ymd("2020-05-01"),
                      max(date, na.rm = T))) %>% 
   group_by(date, yday) %>% 
   summarize(label = unique(glue::glue("{month(date, label = T)} {day(date)}")))
@@ -173,8 +175,8 @@ df_dates <-
 dates <- df_dates$yday
 (dates_lab <- df_dates$label)
 
-fig_width <- 26.9
-fig_height <- 16.8
+fig_width <- 27.4
+fig_height <- 17.4
 ```
 
 
