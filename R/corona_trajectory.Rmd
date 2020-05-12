@@ -178,11 +178,11 @@ latest_day <- max(df_corona_roll$yday)
 latest_rel <- max(df_corona_roll$day_rel)
 
 fig_width = 29
-fig_height = 22
+fig_height = 24
 
 subtitle_lab <- "<b>Each panel shows the trajectory of confirmed deaths due to COVID-19 as percentage of daily deaths relative to the <i style='color:#c93a6e;'>worst day so far</i> for countries with at least 100 reported deaths.</b><span style='font-size:18pt;'><br><br>For each day, starting with the date of first reported death, the 7-day rolling average of confimed deaths per day is divided by the <b style='color:#c93a6e;'>highest average number of daily deaths so far defined as 100%</b>.<br>The text labels show the day of the first cofirmed death due to COVID-19 and the overall death toll per country.</span>"
 
-caption_lab <- "Note: Charts contain all confirmed deaths due to COVID-19 from January 22<sup>nd</sup> to May 6<sup>th</sup> 2020 for countries with 100 or more deaths.<br>* The deaths reported on April 17<sup>th</sup> in Wuhan, China, have been added proportionally to the confirmed daily deaths until that date.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**"
+caption_lab <- "Note: Charts contain all confirmed deaths due to COVID-19 from January 22<sup>nd</sup> to May 9<sup>th</sup> 2020 for countries with 100 or more deaths.<br>* The deaths reported on April 17<sup>th</sup> in Wuhan, China, have been added proportionally to the confirmed daily deaths until that date.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**"
 
 label_col <- c("#f2eaa8", "#ffd08e", "#ffa679", "#f67b77", "#e15383")
 ```
@@ -333,11 +333,11 @@ f +
        subtitle = subtitle_lab,
        caption = caption_lab) +
   theme(axis.text.y = element_text(colour = label_col, face = "bold"),
-        # axis.title.x = element_text(hjust = .5),
-        # plot.caption = element_markdown(margin = margin(t = 45, r = 50)))
-        axis.title.x = element_text(hjust = 0),
-        plot.caption = element_markdown(margin = margin(t = -120, r = 50)),
-        plot.margin = margin(20, 30, -10, 30)) 
+        axis.title.x = element_text(hjust = .5),
+        plot.caption = element_markdown(margin = margin(t = 45, r = 50)))
+        #axis.title.x = element_text(hjust = 0),
+        #plot.caption = element_markdown(margin = margin(t = -120, r = 50)),
+        #plot.margin = margin(20, 30, -10, 30)) 
 
 ggsave(here::here("plots", "corona_trajectory_facet.pdf"),
        width = fig_width, height = fig_height, device = cairo_pdf)

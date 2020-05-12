@@ -175,8 +175,8 @@ df_dates <-
 dates <- df_dates$yday
 (dates_lab <- df_dates$label)
 
-fig_width <- 27.4
-fig_height <- 17.4
+fig_width <- 28.7
+fig_height <- 17.9
 ```
 
 
