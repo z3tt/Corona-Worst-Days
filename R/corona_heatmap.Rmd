@@ -21,6 +21,7 @@ Sys.setlocale("LC_TIME", "C")
 ```{r prep}
 library(tidyverse)
 library(lubridate)
+library(colorspace)
 library(ggtext)
 library(pdftools)
 library(magick)
@@ -352,7 +353,7 @@ for(i in first_day:latest_day) {
                       latest_day + .8,
                       label = country,
                       color = rel,
-                      color = after_scale(colorspace::darken(color, .15, space = "HLS"))),
+                      color = after_scale(darken(color, .15, space = "HLS"))),
                   family = "Open Sans",
                   fontface = "bold",
                   size = 3.7,
@@ -548,7 +549,7 @@ for(i in first_day:latest_day) {
                       latest_day + .8,
                       label = country,
                       color = rel,
-                      color = after_scale(colorspace::darken(color, .15, space = "HLS"))),
+                      color = after_scale(darken(color, .15, space = "HLS"))),
                   family = "Open Sans",
                   fontface = "bold",
                   size = 3.7,
@@ -747,7 +748,7 @@ for(i in first_day:latest_day) {
                       latest_day + .8,
                       label = country,
                       color = rel,
-                      color = after_scale(colorspace::darken(color, .15, space = "HLS"))),
+                      color = after_scale(darken(color, .15, space = "HLS"))),
                   family = "Open Sans",
                   fontface = "bold",
                   size = 3.7,
@@ -784,10 +785,12 @@ pdf_convert(pdf = here::here("plots", "series_heat_lng", "corona_heat_lng_latest
 df <- 
   df_corona_fct %>% 
   group_by(country) %>% 
+  arrange(country, yday) %>% 
   mutate(
       max = max(daily, na.rm = T),
       rel = daily / max,
       rel = if_else(rel < 0, 0, rel),
+      worse = if_else(lag(rel) <= rel, T, F),
       lab = format(sum, big.mark = ","),
       lab = if_else(country == "Worldwide", 
                     glue::glue("**{lab}**"), 
@@ -856,7 +859,7 @@ ggplot(df,
                 latest_day + .8,
                 label = country,
                 color = rel,
-                color = after_scale(colorspace::darken(color, .15, space = "HLS"))),
+                color = after_scale(darken(color, .15, space = "HLS"))),
             family = "Open Sans",
             fontface = "bold",
             size = 3.7,
@@ -954,7 +957,7 @@ df %>%
                   latest_day + .8,
                   label = country,
                   color = rel,
-                  color = after_scale(colorspace::darken(color, .15, space = "HLS"))),
+                  color = after_scale(darken(color, .15, space = "HLS"))),
               family = "Open Sans",
               fontface = "bold",
               size = 3.7,
@@ -998,6 +1001,118 @@ setwd(here::here("plots"))
 pdf_convert(pdf = here::here("plots", "corona_heat_trend_latest_compact.pdf"), 
             format = "png", dpi = 500)
 ```
+
+
+### grey-colored downward trends
+
+```{r static-plot-trend, fig.width = fig_width, fig.height = fig_height + .5}
+ggplot(df,
+       aes(country,
+           yday, 
+           group = yday)) +
+  geom_tile(aes(color = rel,
+                fill = rel),
+            size = .01) +
+  geom_tile(data = df %>% filter(worse == F),
+            aes(fill = rel,
+                fill = after_scale(desaturate(fill))),
+            size = .03) +
+  geom_richtext(data = df %>% filter(yday == latest_day),
+                aes(country,
+                    21.4,
+                    label = lab),
+                family = "Overpass Mono",
+                size = 3.8,
+                fill = NA, 
+                label.color = NA,
+                hjust = 1,
+                vjust = .6) +
+  geom_segment(aes(x = n_countries - .5,
+                   xend = n_countries - .5,
+                   y = 17.8,
+                   yend = latest_day + .5),
+               color = "grey40",
+             size = .2) +
+  geom_tile(data = df %>% filter(rel == 1),
+            color = "black",
+            fill = NA,
+            size = .5) +
+  geom_text(data = df %>% filter(yday == latest_day),
+            aes(country,
+                yday,
+                label = lab_daily),
+            family = "Overpass",
+            color = "grey20",
+            size = 1.8,
+            hjust = .5) +
+  geom_text(data = df %>% filter(rel == 1),
+            aes(country,
+                yday,
+                label = lab_daily),
+            family = "Overpass",
+            fontface = "bold",
+            size = 1.8,
+            hjust = .5) +
+  geom_text(data = df_labs %>% filter(worse == T),
+            aes(country,
+                latest_day + .8,
+                label = country,
+                color = rel,
+                color = after_scale(darken(color, .15, space = "HLS"))),
+            family = "Open Sans",
+            fontface = "bold",
+            size = 3.7,
+            hjust = 0) +
+  geom_text(data = df_labs %>% filter(worse == F),
+            aes(country,
+                latest_day + .8,
+                label = country,
+                color = rel,
+                color = after_scale(desaturate(darken(color, .2, space = "HLS")))),
+            family = "Open Sans",
+            fontface = "bold",
+            size = 3.7,
+            hjust = 0) +
+  coord_flip() +
+  scale_x_discrete(expand = c(.001, 0.01)) +
+  scale_y_continuous(expand = c(.001, 0.01),
+                     limits = c(17.8, latest_day + 8.2),
+                     sec.axis = dup_axis(),
+                     breaks = dates,
+                     labels = dates_lab) + 
+  rcartocolor::scale_color_carto_c(palette = "PinkYl", 
+                                   na.value = darken("#badad0", .1, space = "HLS"),
+                                   limits = c(0, 1),
+                                   guide = F) +
+  rcartocolor::scale_fill_carto_c(palette = "PinkYl", 
+                                  na.value = darken("#badad0", .1, space = "HLS"),
+                                  name = "COVID-19 death cases relative to each country's highest daily death toll so far",
+                                  limits = c(0, 1),
+                                  breaks = c(.001, seq(.25, 1, by = .25)),
+                                  labels = c("0.1% of daily max", "25% of daily max", 
+                                             "50% of daily max", "75% of daily max", 
+                                             "Worst day so far")) +
+                                  #breaks = c(.01, seq(.1, 1, by = .1)),
+                                  #labels = scales::percent_format(accuracy = 1)) +
+  guides(fill = guide_colorbar(title.position = "top",
+                               title.hjust = .5,
+                               label.position = "bottom",
+                               label.hjust = .5,
+                               barwidth = unit(55, "lines"),
+                               barheight = unit(.75, "lines"))) +
+  labs(x = NULL, y = NULL, 
+       title = "<b style='color:#c93a6e;'>The Worst Days:</b> Which Countries are Currently Experiencing the Highest<br>Number of Confirmed Daily Deaths Due to COVID-19 So Far?",
+       caption = '**The visualization shows countries with at least 100 reported deaths due to the corona virus disease (COVID-19).** The color intensity for each day and country is estimated as the<br>number of deaths on this particular day divided by the highest daily death toll so far. The countries are ranked by time since the latest "worst day" and number of reported daily deaths.<br>* On April 17<sup>th</sup> 2020, officials in Wuhan, China, revised the city´s coronavirus death toll. The deaths have been added proportionally to the daily confirmed deaths of China until that date.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**')
+
+ggsave(here::here("plots", glue::glue("corona_heat_trend_latest_grey.pdf")),
+       width = fig_width, height = fig_height + .5, device = cairo_pdf)
+
+## convert pdf to png
+setwd(here::here("plots"))
+pdf_convert(pdf = here::here("plots", "corona_heat_trend_latest_grey.pdf"), 
+            format = "png", dpi = 500)
+```
+
 
 ***
 

@@ -182,7 +182,7 @@ fig_height = 24
 
 subtitle_lab <- "<b>Each panel shows the trajectory of confirmed deaths due to COVID-19 as percentage of daily deaths relative to the <i style='color:#c93a6e;'>worst day so far</i> for countries with at least 100 reported deaths.</b><span style='font-size:18pt;'><br><br>For each day, starting with the date of first reported death, the 7-day rolling average of confimed deaths per day is divided by the <b style='color:#c93a6e;'>highest average number of daily deaths so far defined as 100%</b>.<br>The text labels show the day of the first cofirmed death due to COVID-19 and the overall death toll per country.</span>"
 
-caption_lab <- "Note: Charts contain all confirmed deaths due to COVID-19 from January 22<sup>nd</sup> to May 9<sup>th</sup> 2020 for countries with 100 or more deaths.<br>* The deaths reported on April 17<sup>th</sup> in Wuhan, China, have been added proportionally to the confirmed daily deaths until that date.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**"
+caption_lab <- "Note: Charts contain all confirmed deaths due to COVID-19 from January 22<sup>nd</sup> to May 11<sup>th</sup> 2020 for countries with 100 or more deaths.<br>* The deaths reported on April 17<sup>th</sup> in Wuhan, China, have been added proportionally to the confirmed daily deaths until that date.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**"
 
 label_col <- c("#f2eaa8", "#ffd08e", "#ffa679", "#f67b77", "#e15383")
 ```
@@ -348,6 +348,150 @@ pdf_convert(pdf = here::here("plots", "corona_trajectory_facet.pdf"),
 ```
 
 
+```{r facets-plot-500+, fig.width = fig_width, fig.height = fig_height}
+## only countries with more than 100 or more confirmed deaths
+dff <- 
+  df_corona_roll %>% 
+  filter(
+    sum >= 500, 
+    country != "Worldwide"
+  ) %>% 
+  mutate(country = factor(country)) %>% 
+  mutate(lab_sum = if_else(as.numeric(country) == 1, 
+                           glue::glue("Total: {lab_sum}"),
+                           lab_sum)) %>% 
+  group_by(country) %>% 
+  mutate(
+    lab_worst = if_else(country == "Algeria", 
+                        "Maximum daily\naverage so far", 
+                        NA_character_),
+    xend = if_else(country == "Algeria", day_rel + 35, NA_real_),
+    yend = if_else(country == "Algeria", .825, NA_real_)
+  )
+
+f <- 
+  ggplot(dff, 
+         aes(day_rel, rel, 
+             group = country)) +
+    ## all trajectories
+    geom_line(alpha = .15,
+              size = .7) +
+    ## all worst days as dots
+    geom_point(data = dff %>% filter(yday == latest_day),
+               alpha = 1,
+               size = 1) +
+    gghighlight(use_direct_label = F,
+                unhighlighted_params = list(color = "grey70")) +
+    facet_wrap(~ country, ncol = 7) +
+    coord_cartesian(clip = "off") +
+    scale_x_continuous(expand = c(0, 0),
+                       limits = c(-13, latest_rel + 11),
+                       breaks = seq(0, 80, by = 20)) + 
+    scale_y_continuous(expand = c(.003, .003),
+                       limits = c(0, 1.08),
+                       breaks = seq(0, 1, by = .25),
+                       labels = scales::percent_format())
+
+f + 
+  ## trajectory highlighted
+  geom_line(size = 1.4, color = "grey20") +
+  ## point worst day highlighted
+  geom_point(data = dff %>% filter(rel == 1),
+             size = 2,
+             color = "#e15383") +
+  ## point latest value
+  geom_point(data = dff %>% filter(yday == latest_day),
+             size = 4.5,
+             shape = 21,
+             color = "white",
+             fill = "black",
+             stroke = .6) + #278f84
+  geom_point(data = dff %>% filter(yday == latest_day),
+             aes(color = rel),
+             size = 2) +
+  ## remove grid lines annpotation areas left + right
+  geom_rect(xmin = -Inf, xmax = 0,
+            ymin = -Inf, ymax = Inf,
+            fill = "white",
+            inherit.aes = F) +
+  geom_rect(xmin = latest_rel + 2.5, xmax = Inf,
+            ymin = -Inf, ymax = Inf,
+            fill = "white",
+            inherit.aes = F) +
+  ## version with label showing latest daily numbers
+  geom_label(data = dff %>% filter(yday == latest_day & country != "China*"),
+            aes(label = lab_sum),
+            size = 5,
+            family = "Overpass",
+            color = "grey20",
+            fontface = "bold",
+            hjust = 0,
+            nudge_x = 4,
+            lineheight = .9) +
+  geom_label(data = dff %>% filter(yday == latest_day & country == "China*"),
+            aes(label = lab_sum),
+            size = 5,
+            family = "Overpass",
+            color = "grey20",
+            fontface = "bold",
+            vjust = 0,
+            nudge_y = .08) +
+  ## label date first confirmed death
+  geom_text(data = dff %>% filter(day_rel == 0),
+            aes(label = glue::glue("{month} {day}")),
+            size = 4,
+            family = "Overpass",
+            color = "grey20",
+            fontface = "bold",
+            hjust = 1,
+            vjust = .5,
+            nudge_x = -1) +
+  ## label worst day so far
+  geom_text(data = dff %>% filter(rel == 1) %>% 
+              mutate(lab = format(round(max), big.mark = ",")) %>% 
+              group_by(country) %>% filter(yday == min(yday)),
+            aes(label = lab),
+            size = 4.5,
+            family = "Overpass",
+            fontface = "bold",
+            color = "#e15383",
+            hjust = 1,
+            nudge_x = -1.75,
+            nudge_y = .07) +
+  ## explanation note worst day so far
+  geom_segment(data = dff %>% filter(rel == 1),
+               aes(xend = xend, yend = yend),
+               color = "#e15383",
+               size = .6) +
+  geom_label(data = dff %>% filter(rel == 1),
+             aes(xend, .95, label = lab_worst),
+             size = 5,
+             family = "Overpass",
+             fontface = "bold",
+             color = "#e15383",
+             lineheight = .9) +
+  rcartocolor::scale_color_carto_c(palette = "PinkYl", guide = F) +
+  labs(x = "Number of days since first confirmed death due to COVID-19",
+       y = "COVID-19 death cases relative to each country's highest average daily death toll so far", 
+       title = "<b style='color:#c93a6e;'>The Worst Days:</b> Peaks in Confirmed Daily Deaths Due to COVID-19 So Far",
+       subtitle = "<b>Each panel shows the trajectory of confirmed deaths due to COVID-19 as percentage of daily deaths relative to the <i style='color:#c93a6e;'>worst day so far</i> for countries with at least 500 reported deaths.</b><span style='font-size:18pt;'><br><br>For each day, starting with the date of first reported death, the 7-day rolling average of confimed deaths per day is divided by the <b style='color:#c93a6e;'>highest average number of daily deaths so far defined as 100%</b>.<br>The text labels show the day of the first cofirmed death due to COVID-19 and the overall death toll per country.</span>",
+       caption = "Note: Charts contain all confirmed deaths due to COVID-19 from January 22<sup>nd</sup> to May 11<sup>th</sup> 2020 for countries with 500 or more deaths.<br>* The deaths reported on April 17<sup>th</sup> in Wuhan, China, have been added proportionally to the confirmed daily deaths until that date.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**") +
+  theme(axis.text.y = element_text(colour = label_col, face = "bold"),
+        axis.title.x = element_text(hjust = .5),
+        plot.caption = element_markdown(margin = margin(t = 45, r = 50)))
+        #axis.title.x = element_text(hjust = 0),
+        #plot.caption = element_markdown(margin = margin(t = -120, r = 50)),
+        #plot.margin = margin(20, 30, -10, 30)) 
+
+ggsave(here::here("plots", "corona_trajectory_facet_500.pdf"),
+       width = fig_width, height = fig_height - 6.5, device = cairo_pdf)
+
+setwd(here::here("plots"))
+pdf_convert(pdf = here::here("plots", "corona_trajectory_facet_500.pdf"), 
+              format = "png", dpi = 350)
+```
+
+
 ## Plot: Global Trajectory
 
 ```{r overview-plot}
@@ -406,7 +550,6 @@ ggplot(df,
 ggsave(here::here("plots", "corona_trajectory_overview.pdf"),
        width = 9.2, height = 6.7, device = cairo_pdf)
 ```
-
 
 
 ## Animation: Trajectories per Country
