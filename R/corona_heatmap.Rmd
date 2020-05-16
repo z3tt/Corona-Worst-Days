@@ -370,7 +370,7 @@ pdfs <- list.files(here::here("plots", "series_heat_sum"), pattern = "*.pdf")
 
 for(pdf in pdfs) {
   pdf_convert(pdf = here::here("plots", "series_heat_sum", pdf), 
-              format = "png", dpi = 200)
+              format = "png", dpi = 150)
 }
 
 ## convert png's to gif
@@ -791,6 +791,7 @@ df <-
       rel = daily / max,
       rel = if_else(rel < 0, 0, rel),
       worse = if_else(lag(rel) <= rel, T, F),
+      worse = if_else(is.na(worse), T, worse),
       lab = format(sum, big.mark = ","),
       lab = if_else(country == "Worldwide", 
                     glue::glue("**{lab}**"), 

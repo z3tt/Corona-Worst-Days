@@ -149,7 +149,9 @@ df_corona_roll <-
     rel = if_else(is.na(rel), 0, rel),
     sum = sum(daily, na.rm = T),
     day_first = min(yday[which(rel > 0)]),
-    day_rel = yday - day_first
+    day_rel = yday - day_first,
+    worse = if_else(lag(rel) <= rel, T, F),
+    worse = if_else(is.na(worse), T, worse)
   ) %>% 
   filter(day_rel >= 0) %>%   ##yday < max(yday) - 5, 
   mutate(
@@ -167,6 +169,7 @@ df_dates <-
                      ymd("2020-03-15"),
                      ymd("2020-04-01"),
                      ymd("2020-04-15"),
+                     ymd("2020-05-01"),
                      max(date, na.rm = T))) %>% 
   group_by(date, yday) %>% 
   summarize(label = unique(glue::glue("{month(date, label = T)} {day(date)}")))
@@ -222,7 +225,11 @@ for(i in first_day:latest_day) {
                #color = rel, 
                fill = rel)) + 
       geom_tile(color = "white",
-              size = .5) +
+                size = .5) +
+      geom_tile(data = df_corona_tile %>% filter(worse == F),
+               aes(fill = rel, fill = after_scale(colorspace::desaturate(fill))),
+               color = "white",
+               size = .5) +
       geom_text(data = df_corona_tile %>% filter(!is.na(rel)),
                 aes(label = alpha.3,
                     color = rel,
@@ -278,7 +285,7 @@ for(i in first_day:latest_day) {
          width = fig_width, height = fig_height, device = cairo_pdf)
   
   if(i == latest_day) {
-    ggsave(glue::glue(here::here("plots", "series_map", "corona_map_yday_latest.pdf")),
+    ggsave(glue::glue(here::here("plots", "series_map", "corona_map_yday_latest_grey.pdf")),
          width = fig_width, height = fig_height, device = cairo_pdf)
   }
 }
@@ -375,3 +382,4 @@ pdf_convert(pdf = here::here("plots", "corona_map_date.pdf"),
 ```{r session-info}
 sessionInfo()
 ```
+-
