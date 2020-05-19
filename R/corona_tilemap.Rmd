@@ -220,16 +220,13 @@ for(i in first_day:latest_day) {
     full_join(df_world_tile) %>% 
     filter(!is.na(name)) 
   
-  df_corona_tile %>% 
+  p <- 
+    df_corona_tile %>% 
     ggplot(aes(x, y, 
                #color = rel, 
                fill = rel)) + 
       geom_tile(color = "white",
                 size = .5) +
-      geom_tile(data = df_corona_tile %>% filter(worse == F),
-               aes(fill = rel, fill = after_scale(colorspace::desaturate(fill))),
-               color = "white",
-               size = .5) +
       geom_text(data = df_corona_tile %>% filter(!is.na(rel)),
                 aes(label = alpha.3,
                     color = rel,
@@ -285,7 +282,7 @@ for(i in first_day:latest_day) {
          width = fig_width, height = fig_height, device = cairo_pdf)
   
   if(i == latest_day) {
-    ggsave(glue::glue(here::here("plots", "series_map", "corona_map_yday_latest_grey.pdf")),
+    ggsave(glue::glue(here::here("plots", "series_map", "corona_map_yday_latest.pdf")),
          width = fig_width, height = fig_height, device = cairo_pdf)
   }
 }
@@ -303,6 +300,27 @@ for(pdf in pdfs) {
 system("magick.exe -delay 40 *.png -delay 200 *latest_1.png -loop 0 corona_map.gif")
 
 pdf_convert(pdf = here::here("plots", "series_map", "corona_map_yday_latest.pdf"), 
+              format = "png", dpi = 750)
+
+## grey-scaled version for "better days"
+if(i == latest_day) {
+   p +
+      geom_tile(data = df_corona_tile %>% filter(worse == F),
+               aes(fill = rel, fill = after_scale(colorspace::desaturate(fill))),
+               color = "white",
+               size = .5) +
+      geom_text(data = df_corona_tile %>% filter(worse == F),
+                aes(label = alpha.3,
+                    color = rel,
+                    color = after_scale(colorspace::desaturate(colorspace::darken(color, .5, space = "HLS")))), 
+                family = "Overpass",
+                fontface = "bold")
+  
+  ggsave(glue::glue(here::here("plots", "series_map", "corona_map_yday_latest_grey.pdf")),
+         width = fig_width, height = fig_height, device = cairo_pdf)
+}
+
+pdf_convert(pdf = here::here("plots", "series_map", "corona_map_yday_latest_grey.pdf"), 
               format = "png", dpi = 750)
 ```
 
@@ -331,7 +349,7 @@ df_corona_tile %>%
                   color = text_col), 
               family = "Overpass",
               fontface = "bold") +
-    # geom_text(data = df_corona_tile %>% filter(!is.na(rday_el)),
+    # geom_text(data = df_corona_tile %>% filter(!is.na(day_rel)),
     #             aes(label = alpha.3,
     #                 color = day_rel,
     #                 color = after_scale(colorspace::darken(color, .5, space = "HLS"))), 
