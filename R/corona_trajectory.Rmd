@@ -178,11 +178,11 @@ latest_day <- max(df_corona_roll$yday)
 latest_rel <- max(df_corona_roll$day_rel)
 
 fig_width = 29
-fig_height = 25
+fig_height = 26.5
 
 subtitle_lab <- "<b>Each panel shows the trajectory of confirmed deaths due to COVID-19 as percentage of daily deaths relative to the <i style='color:#c93a6e;'>worst day so far</i> for countries with at least 100 reported deaths.</b><span style='font-size:18pt;'><br><br>For each day, starting with the date of first reported death, the 7-day rolling average of confimed deaths per day is divided by the <b style='color:#c93a6e;'>highest average number of daily deaths so far defined as 100%</b>.<br>The text labels show the day of the first cofirmed death due to COVID-19 and the overall death toll per country.</span>"
 
-caption_lab <- "Note: Charts contain all confirmed deaths due to COVID-19 from January 22<sup>nd</sup> to May 17<sup>th</sup> 2020 for countries with 100 or more deaths.<br>* The deaths reported on April 17<sup>th</sup> in Wuhan, China, have been added proportionally to the confirmed daily deaths until that date.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**"
+caption_lab <- "Note: Charts contain all confirmed deaths due to COVID-19 from January 22<sup>nd</sup> to May 21<sup>th</sup> 2020 for countries with 100 or more deaths.<br>* The deaths reported on April 17<sup>th</sup> in Wuhan, China, have been added proportionally to the confirmed daily deaths until that date.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**"
 
 label_col <- colorspace::darken(c("#f2eaa8", "#ffd08e", "#ffa679", "#f67b77", "#e15383"), .05, space = "HLS")
 ```
@@ -233,14 +233,23 @@ f <-
     facet_wrap(~ country, ncol = 8) +
     coord_cartesian(clip = "off") +
     scale_x_continuous(expand = c(0, 0),
-                       limits = c(-13, latest_rel + 11),
-                       breaks = seq(0, 100, by = 20)) + 
+                       limits = c(-13, latest_rel + 11.2),
+                       breaks = seq(0, 120, by = 20)) + 
     scale_y_continuous(expand = c(.003, .003),
                        limits = c(0, 1.08),
                        breaks = seq(0, 1, by = .25),
                        labels = scales::percent_format())
 
 f + 
+  ## remove grid lines annpotation areas left + right
+  geom_rect(xmin = -Inf, xmax = 0,
+            ymin = -Inf, ymax = Inf,
+            fill = "white",
+            inherit.aes = F) +
+  geom_rect(xmin = latest_rel + 2.5, xmax = Inf,
+            ymin = -Inf, ymax = Inf,
+            fill = "white",
+            inherit.aes = F) +
   ## trajectory highlighted
   geom_line(size = 1.4, color = "grey20") +
   ## point worst day highlighted
@@ -257,15 +266,6 @@ f +
   geom_point(data = dff %>% filter(yday == latest_day),
              aes(color = rel),
              size = 2) +
-  ## remove grid lines annpotation areas left + right
-  geom_rect(xmin = -Inf, xmax = 0,
-            ymin = -Inf, ymax = Inf,
-            fill = "white",
-            inherit.aes = F) +
-  geom_rect(xmin = latest_rel + 2.5, xmax = Inf,
-            ymin = -Inf, ymax = Inf,
-            fill = "white",
-            inherit.aes = F) +
   ## version with label showing latest daily numbers
   geom_label(data = dff %>% filter(yday == latest_day & country != "China*"),
             aes(label = lab_sum),
@@ -333,11 +333,11 @@ f +
        subtitle = subtitle_lab,
        caption = caption_lab) +
   theme(axis.text.y = element_text(colour = label_col, face = "bold"),
-        #axis.title.x = element_text(hjust = .5),
-        #plot.caption = element_markdown(margin = margin(t = 45, r = 50)))
-        axis.title.x = element_text(hjust = 0),
-        plot.caption = element_markdown(margin = margin(t = -120, r = 50)),
-        plot.margin = margin(20, 30, -10, 30)) 
+        axis.title.x = element_text(hjust = .15),
+        plot.caption = element_markdown(margin = margin(t = 45, r = 50)))
+        #axis.title.x = element_text(hjust = 0),
+        #plot.caption = element_markdown(margin = margin(t = -120, r = 50)),
+        #plot.margin = margin(20, 30, -10, 30)) 
 
 ggsave(here::here("plots", "corona_trajectory_facet.pdf"),
        width = fig_width, height = fig_height, device = cairo_pdf)
@@ -365,7 +365,7 @@ dff <-
     lab_worst = if_else(country == "Algeria", 
                         "Maximum daily\naverage so far", 
                         NA_character_),
-    xend = if_else(country == "Algeria", day_rel + 35, NA_real_),
+    xend = if_else(country == "Algeria", day_rel + 37, NA_real_),
     yend = if_else(country == "Algeria", .825, NA_real_)
   )
 
@@ -385,14 +385,23 @@ f <-
     facet_wrap(~ country, ncol = 7, scales = "free_x") +
     coord_cartesian(clip = "off") +
     scale_x_continuous(expand = c(0, 0),
-                       limits = c(-13, latest_rel + 11),
-                       breaks = seq(0, 100, by = 20)) + 
+                       limits = c(-13, latest_rel + 11.2),
+                       breaks = seq(0, 120, by = 20)) + 
     scale_y_continuous(expand = c(.003, .003),
                        limits = c(0, 1.08),
                        breaks = seq(0, 1, by = .25),
                        labels = scales::percent_format())
 
 f + 
+  ## remove grid lines annpotation areas left + right
+  geom_rect(xmin = -Inf, xmax = 0,
+            ymin = -Inf, ymax = Inf,
+            fill = "white",
+            inherit.aes = F) +
+  geom_rect(xmin = latest_rel + 2.5, xmax = Inf,
+            ymin = -Inf, ymax = Inf,
+            fill = "white",
+            inherit.aes = F) +
   ## trajectory highlighted
   geom_line(size = 1.4, color = "grey20") +
   ## point worst day highlighted
@@ -409,15 +418,6 @@ f +
   geom_point(data = dff %>% filter(yday == latest_day),
              aes(color = rel),
              size = 2) +
-  ## remove grid lines annpotation areas left + right
-  geom_rect(xmin = -Inf, xmax = 0,
-            ymin = -Inf, ymax = Inf,
-            fill = "white",
-            inherit.aes = F) +
-  geom_rect(xmin = latest_rel + 2.5, xmax = Inf,
-            ymin = -Inf, ymax = Inf,
-            fill = "white",
-            inherit.aes = F) +
   ## version with label showing latest daily numbers
   geom_label(data = dff %>% filter(yday == latest_day & country != "China*"),
             aes(label = lab_sum),
@@ -475,7 +475,7 @@ f +
        y = "COVID-19 death cases relative to each country's highest average daily death toll so far", 
        title = "<b style='color:#c93a6e;'>The Worst Days:</b> Peaks in Confirmed Daily Deaths Due to COVID-19 So Far",
        subtitle = "<b>Each panel shows the trajectory of confirmed deaths due to COVID-19 as percentage of daily deaths relative to the <i style='color:#c93a6e;'>worst day so far</i> for countries with at least 500 reported deaths.</b><span style='font-size:18pt;'><br><br>For each day, starting with the date of first reported death, the 7-day rolling average of confimed deaths per day is divided by the <b style='color:#c93a6e;'>highest average number of daily deaths so far defined as 100%</b>.<br>The text labels show the day of the first cofirmed death due to COVID-19 and the overall death toll per country.</span>",
-       caption = "Note: Charts contain all confirmed deaths due to COVID-19 from January 22<sup>nd</sup> to May 17<sup>th</sup> 2020 for countries with 500 or more deaths.<br>* The deaths reported on April 17<sup>th</sup> in Wuhan, China, have been added proportionally to the confirmed daily deaths until that date.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**") +
+       caption = "Note: Charts contain all confirmed deaths due to COVID-19 from January 22<sup>nd</sup> to May 21<sup>th</sup> 2020 for countries with 500 or more deaths.<br>* The deaths reported on April 17<sup>th</sup> in Wuhan, China, have been added proportionally to the confirmed daily deaths until that date.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**") +
   theme(axis.text.x = element_text(size = 12),
         axis.text.y = element_text(colour = label_col, face = "bold"),
         axis.title.x = element_text(hjust = .5),
@@ -602,7 +602,7 @@ for(i in first_day:latest_day) {
       coord_cartesian(clip = "off") +
       scale_x_continuous(expand = c(0, 0),
                          limits = c(-13, latest_rel + 11),
-                         breaks = seq(0, 100, by = 20)) + 
+                         breaks = seq(0, 120, by = 20)) + 
       scale_y_continuous(expand = c(.003, .003),
                          limits = c(0, 1.08),
                          labels = scales::percent_format())
