@@ -294,7 +294,7 @@ pdfs <- list.files(here::here("plots", "series_map"), pattern = "*.pdf")
 
 for(pdf in pdfs) {
   pdf_convert(pdf = here::here("plots", "series_map", pdf), 
-              format = "png", dpi = 250)
+              format = "png", dpi = 200)
 }
 
 ## convert png's to gif

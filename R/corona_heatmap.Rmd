@@ -372,7 +372,7 @@ pdfs <- list.files(here::here("plots", "series_heat_sum"), pattern = "*.pdf")
 
 for(pdf in pdfs) {
   pdf_convert(pdf = here::here("plots", "series_heat_sum", pdf), 
-              format = "png", dpi = 150)
+              format = "png", dpi = 120)
 }
 
 ## convert png's to gif
@@ -386,8 +386,8 @@ pdf_convert(pdf = here::here("plots", "series_heat_sum", "corona_heat_sum_latest
 ### ranked by day of first confirmed death case
 
 ```{r animation-ranked-by-begin, fig.width = fig_width, fig.height = fig_height}
-#for(i in first_day:latest_day) {
-for(i in 44:latest_day) {  
+for(i in first_day:latest_day) {
+#for(i in 44:latest_day) {  
   print(i)
   
   df <-
@@ -570,7 +570,7 @@ pdfs <- list.files(here::here("plots", "series_heat_begin"), pattern = "*.pdf")
 
 for(pdf in pdfs) {
   pdf_convert(pdf = here::here("plots", "series_heat_begin", pdf), 
-              format = "png", dpi = 150)
+              format = "png", dpi = 120)
 }
 
 ## convert png's to gif
