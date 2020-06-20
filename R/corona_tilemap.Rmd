@@ -131,11 +131,30 @@ df_corona_china_fix <-
     daily = if_else(daily == max(daily), daily - 3, daily)
   ) 
 
+## fix deaths in Spain, that were revised later
+spain_deaths <- 
+  df_corona_days %>% 
+  filter(country == "Spain^" & yday == 171) %>% ## June 19th
+  pull(daily)
+
+df_corona_spain_fix <-
+  df_corona_days %>% 
+  filter(country == "Spain^" & yday <= 171) %>% 
+  mutate(
+    daily = if_else(yday == 171, 0, daily),
+    daily = if_else(is.na(daily), 0, daily),
+    daily = daily + round(daily * spain_deaths / sum(daily)),
+    daily = if_else(daily == max(daily), daily + 5, daily),
+    daily = if_else(daily == 0, NA_real_, daily)
+  ) 
 
 ## calculate rolling average and add label column
 df_corona_roll <- 
   df_corona_days %>% 
-  filter(!(country == "China*" & yday <= 108)) %>% 
+  filter(
+    !(country == "China*" & yday <= 108) &
+    !(country == "Spain^" & yday <= 171)
+  ) %>% 
   bind_rows(df_corona_world) %>% 
   bind_rows(df_corona_china_zeros) %>% 
   bind_rows(df_corona_china_fix) %>% 
@@ -171,6 +190,7 @@ df_dates <-
                      ymd("2020-04-15"),
                      ymd("2020-05-01"),
                      ymd("2020-05-15"),
+                     ymd("2020-06-01"),
                      max(date, na.rm = T))) %>% 
   group_by(date, yday) %>% 
   summarize(label = unique(glue::glue("{month(date, label = T)} {day(date)}")))
@@ -401,4 +421,3 @@ pdf_convert(pdf = here::here("plots", "corona_map_date.pdf"),
 ```{r session-info}
 sessionInfo()
 ```
--

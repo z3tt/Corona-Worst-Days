@@ -42,11 +42,11 @@ theme_update(axis.text.x = element_text(size = 14),
              axis.ticks.length = unit(.3, "lines"),
              axis.title.y = element_text(face = "bold"),
              legend.position = "top",
-             legend.title = element_text(size = 18, color = "grey40"),
-             legend.text = element_text(family = "Overpass", size = 16, color = "grey40"),
+             legend.title = element_text(size = 20, color = "grey40"),
+             legend.text = element_text(family = "Overpass", size = 17, color = "grey40"),
              legend.margin = margin(5, 0, 20, 0),
              panel.grid = element_blank(),
-             plot.title = element_markdown(family = "Overpass", size = 48, face = "bold",
+             plot.title = element_markdown(family = "Overpass", size = 50, face = "bold",
                                            color = "grey20", hjust = .5, lineheight = 1.05,
                                            margin = margin(12, 0, 25, 0)),
              plot.title.position = "plot",
@@ -102,6 +102,7 @@ df_corona_days <-
       country == "Korea, South" ~ "South Korea",
       country == "Bosnia and Herzegovina" ~ "Bosnia–Herzegovina",
       country == "China" ~ "China*",
+      country == "Spain" ~ "Spain^",
       country == "Congo (Kinshasa)" ~ "DR Congo",
       country == "Congo (Brazzaville)" ~ "Congo-Brazzaville",
       TRUE ~ country
@@ -142,12 +143,33 @@ df_corona_china_fix <-
     daily = if_else(daily == 0, NA_real_, daily)
   ) 
 
+## fix deaths in Spain, that were revised later
+spain_deaths <- 
+  df_corona_days %>% 
+  filter(country == "Spain^" & yday == 171) %>% ## June 19th
+  pull(daily)
+
+df_corona_spain_fix <-
+  df_corona_days %>% 
+  filter(country == "Spain^" & yday <= 171) %>% 
+  mutate(
+    daily = if_else(yday == 171, 0, daily),
+    daily = if_else(is.na(daily), 0, daily),
+    daily = daily + round(daily * spain_deaths / sum(daily)),
+    daily = if_else(daily == max(daily), daily + 5, daily),
+    daily = if_else(daily == 0, NA_real_, daily)
+  ) 
+
 ## only countries with 50 or more confirmed deaths + factorize countries
 df_corona_fct <- 
   df_corona_days %>% 
-  filter(!(country == "China*" & yday <= 108)) %>% 
+  filter(
+    !(country == "China*" & yday <= 108) &
+    !(country == "Spain^" & yday <= 171)
+  ) %>% 
   bind_rows(df_corona_world) %>% 
   bind_rows(df_corona_china_fix) %>% 
+  bind_rows(df_corona_spain_fix) %>% 
   group_by(country) %>% 
   mutate(sum = sum(daily, na.rm = T)) %>% 
   filter(sum >= 100) %>%
@@ -178,8 +200,8 @@ df_dates <-
 dates <- df_dates$yday
 (dates_lab <- df_dates$label)
 
-fig_width <- 33.1
-fig_height <- 20.1
+fig_width <- 34.8
+fig_height <- 21.8
 ```
 
 
@@ -257,10 +279,10 @@ for(i in 44:latest_day) {
                        yend = i + .5),
                    color = "grey40",
                    size = .2) +
-      coord_flip() +
+      coord_flip(clip = "off") +
       scale_x_discrete(expand = c(.001, .001)) +
       scale_y_continuous(expand = c(.001, 0.01),
-                         limits = c(17.8, latest_day + 8.2),
+                         limits = c(17.8, latest_day + 7),
                          sec.axis = dup_axis(),
                          breaks = dates,
                          labels = dates_lab) + 
@@ -286,7 +308,7 @@ for(i in 44:latest_day) {
                                    barheight = unit(.75, "lines"))) +
       labs(x = NULL, y = NULL, 
            title = "<b style='color:#c93a6e;'>The Worst Days:</b> Peaks in Confirmed Daily Deaths Due to COVID-19 So Far",
-           caption = "The visualization shows **countries with at least 100 reported deaths** due to the corona virus disease 2019 (COVID-19). The color intensity for each day and country is estimated as<br>the number of deaths on this particular day divided by the highest daily death toll so far. The countries are ranked by the overall number of confirmed deaths due to COVID-19.<br>* On April 17<sup>th</sup> 2020, officials in Wuhan, China, revised the city´s coronavirus death toll. The deaths have been added proportionally to the daily confirmed deaths of China until that date.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**")
+           caption = "The visualization shows **countries with at least 100 reported deaths** due to the corona virus disease 2019 (COVID-19). The color intensity for each day and country is estimated as<br>the number of deaths on this particular day divided by the highest daily death toll so far. The countries are ranked by the overall number of confirmed deaths due to COVID-19.<br><br><span style='font-size:11pt'>* On April 17<sup>th</sup> 2020, officials in Wuhan, China, revised the city´s coronavirus death toll. The deaths have been added proportionally to the daily confirmed deaths of China until that date.<br>^ On June 19<sup>th</sup> the Spanish Ministry of Health has issued a revised death total for Spain. The deaths have been added proportionally to the daily confirmed deaths of Spain until that date.</span><br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**")
   
   g_daily <-
     g +
@@ -297,7 +319,7 @@ for(i in 44:latest_day) {
                 family = "Overpass",
                 color = "black",
                 fontface = "bold",
-                size = 1.8,
+                size = 1.7,
                 hjust = .5) +
       geom_label(data = df_labs,
                  aes(country,
@@ -341,7 +363,7 @@ for(i in 44:latest_day) {
                       label = lab_daily),
                   family = "Overpass",
                   color = "grey40",
-                  size = 1.8,
+                  size = 1.7,
                   hjust = .5) +
         geom_text(data = df %>% filter(rel == 1),
                   aes(country,
@@ -349,7 +371,7 @@ for(i in 44:latest_day) {
                       label = lab_daily),
                   family = "Overpass",
                   fontface = "bold",
-                  size = 1.8,
+                  size = 1.7,
                   hjust = .5) +
         geom_text(data = df_labs,
                   aes(country,
@@ -454,10 +476,10 @@ for(i in first_day:latest_day) {
                        yend = i + .5),
                    color = "grey40",
                    size = .2) +
-      coord_flip() +
+      coord_flip(clip = "off") +
       scale_x_discrete(expand = c(.001, 0.01)) +
       scale_y_continuous(expand = c(.001, 0.01),
-                         limits = c(17.8, latest_day + 8.2),
+                         limits = c(17.8, latest_day + 7),
                          sec.axis = dup_axis(),
                          breaks = dates,
                          labels = dates_lab) + 
@@ -483,7 +505,7 @@ for(i in first_day:latest_day) {
                                    barheight = unit(.75, "lines"))) +
     labs(x = NULL, y = NULL, 
          title = "<b style='color:#c93a6e;'>The Worst Days:</b> Peaks in Confirmed Daily Deaths Due to COVID-19 So Far",
-         caption = "**The visualization shows countries with at least 100 reported deaths due to the corona virus disease (COVID-19).** The color intensity for each day and country is estimated as<br>the number of deaths on this particular day divided by the highest daily death toll so far. The countries are ranked by the day of the first confirmed death due to COVID-19.<br>* On April 17<sup>th</sup> 2020, officials in Wuhan, China, revised the city´s coronavirus death toll. The deaths have been added proportionally to the daily confirmed deaths of China until that date.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**")
+         caption = "**The visualization shows countries with at least 100 reported deaths due to the corona virus disease (COVID-19).** The color intensity for each day and country is estimated as<br>the number of deaths on this particular day divided by the highest daily death toll so far. The countries are ranked by the day of the first confirmed death due to COVID-19.<br><br><span style='font-size:11pt'>* On April 17<sup>th</sup> 2020, officials in Wuhan, China, revised the city´s coronavirus death toll. The deaths have been added proportionally to the daily confirmed deaths of China until that date.<br>^ On June 19<sup>th</sup> the Spanish Ministry of Health has issued a revised death total for Spain. The deaths have been added proportionally to the daily confirmed deaths of Spain until that date.</span><br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**")
   
   g_daily <- 
     g +
@@ -494,7 +516,7 @@ for(i in first_day:latest_day) {
                 family = "Overpass",
                 color = "black",
                 fontface = "bold",
-                size = 1.8,
+                size = 1.7,
                 hjust = .5) +
       geom_label(data = df_labs,
                  aes(country,
@@ -538,7 +560,7 @@ for(i in first_day:latest_day) {
                       label = lab_daily),
                   family = "Overpass",
                   color = "grey20",
-                  size = 1.8,
+                  size = 1.7,
                   hjust = .5) +
         geom_text(data = df %>% filter(rel == 1),
                   aes(country,
@@ -546,7 +568,7 @@ for(i in first_day:latest_day) {
                       label = lab_daily),
                   family = "Overpass",
                   fontface = "bold",
-                  size = 1.8,
+                  size = 1.7,
                   hjust = .5) +
         geom_text(data = df_labs,
                   aes(country,
@@ -654,10 +676,10 @@ for(i in 44:latest_day) {
                        yend = i + .5),
                    color = "grey20",
                    size = .4) +
-      coord_flip() +
+      coord_flip(clip = "off") +
       scale_x_discrete(expand = c(.001, 0.01)) +
       scale_y_continuous(expand = c(.001, 0.01),
-                         limits = c(17.8, latest_day + 8.2),
+                         limits = c(17.8, latest_day + 7),
                          sec.axis = dup_axis(),
                          breaks = dates,
                          labels = dates_lab) + 
@@ -683,7 +705,7 @@ for(i in 44:latest_day) {
                                    barheight = unit(.75, "lines"))) +
     labs(x = NULL, y = NULL, 
          title = "<b style='color:#c93a6e;'>The Worst Days:</b> Peaks in Confirmed Daily Deaths Due to COVID-19 So Far",
-         caption = "**The visualization shows countries with at least 100 reported deaths due to the corona virus disease (COVID-19).** The color intensity for each day and country is estimated as<br>the number of deaths on this particular day divided by the highest daily death toll so far. The countries are ranked by the latitude of their centroid.<br>* On April 17<sup>th</sup> 2020, officials in Wuhan, China, revised the city´s coronavirus death toll. The deaths have been added proportionally to the daily confirmed deaths of China until that date.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**")
+         caption = "**The visualization shows countries with at least 100 reported deaths due to the corona virus disease (COVID-19).** The color intensity for each day and country is estimated as<br>the number of deaths on this particular day divided by the highest daily death toll so far. The countries are ranked by the latitude of their centroid.<br><br><span style='font-size:11pt'>* On April 17<sup>th</sup> 2020, officials in Wuhan, China, revised the city´s coronavirus death toll. The deaths have been added proportionally to the daily confirmed deaths of China until that date.<br>^ On June 19<sup>th</sup> the Spanish Ministry of Health has issued a revised death total for Spain. The deaths have been added proportionally to the daily confirmed deaths of Spain until that date.</span><br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**")
   
   g_daily <- 
     g +
@@ -694,7 +716,7 @@ for(i in 44:latest_day) {
                 family = "Overpass",
                 color = "black",
                 fontface = "bold",
-                size = 1.8,
+                size = 1.7,
                 hjust = .5) +
       geom_label(data = df_labs,
                  aes(country,
@@ -738,7 +760,7 @@ for(i in 44:latest_day) {
                       label = lab_daily),
                   family = "Overpass",
                   color = "grey20",
-                  size = 1.8,
+                  size = 1.7,
                   hjust = .5) +
         geom_text(data = df %>% filter(rel == 1),
                   aes(country,
@@ -746,7 +768,7 @@ for(i in 44:latest_day) {
                       label = lab_daily),
                   family = "Overpass",
                   fontface = "bold",
-                  size = 1.8,
+                  size = 1.7,
                   hjust = .5) +
         geom_text(data = df_labs,
                   aes(country,
@@ -850,7 +872,7 @@ ggplot(df,
                 label = lab_daily),
             family = "Overpass",
             color = "grey20",
-            size = 1.8,
+            size = 1.7,
             hjust = .5) +
   geom_text(data = df %>% filter(rel == 1),
             aes(country,
@@ -858,7 +880,7 @@ ggplot(df,
                 label = lab_daily),
             family = "Overpass",
             fontface = "bold",
-            size = 1.8,
+            size = 1.7,
             hjust = .5) +
   geom_text(data = df_labs,
             aes(country,
@@ -870,10 +892,10 @@ ggplot(df,
             fontface = "bold",
             size = 3.7,
             hjust = 0) +
-  coord_flip() +
+  coord_flip(clip = "off") +
   scale_x_discrete(expand = c(.001, 0.01)) +
   scale_y_continuous(expand = c(.001, 0.01),
-                     limits = c(17.8, latest_day + 8.2),
+                     limits = c(17.8, latest_day + 7),
                      sec.axis = dup_axis(),
                      breaks = dates,
                      labels = dates_lab) + 
@@ -899,7 +921,7 @@ ggplot(df,
                                barheight = unit(.75, "lines"))) +
   labs(x = NULL, y = NULL, 
        title = "<b style='color:#c93a6e;'>The Worst Days:</b> Which Countries are Currently Experiencing the Highest<br>Number of Confirmed Daily Deaths Due to COVID-19 So Far?",
-       caption = '**The visualization shows countries with at least 100 reported deaths due to the corona virus disease (COVID-19).** The color intensity for each day and country is estimated as the<br>number of deaths on this particular day divided by the highest daily death toll so far. The countries are ranked by time since the latest "worst day" and number of reported daily deaths.<br>* On April 17<sup>th</sup> 2020, officials in Wuhan, China, revised the city´s coronavirus death toll. The deaths have been added proportionally to the daily confirmed deaths of China until that date.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**')
+       caption = '**The visualization shows countries with at least 100 reported deaths due to the corona virus disease (COVID-19).** The color intensity for each day and country is estimated as the<br>number of deaths on this particular day divided by the highest daily death toll so far. The countries are ranked by time since the latest "worst day" and number of reported daily deaths.<br><br><span style="font-size:11pt">* On April 17<sup>th</sup> 2020, officials in Wuhan, China, revised the city´s coronavirus death toll. The deaths have been added proportionally to the daily confirmed deaths of China until that date.<br>^ On June 19<sup>th</sup> the Spanish Ministry of Health has issued a revised death total for Spain. The deaths have been added proportionally to the daily confirmed deaths of Spain until that date.</span><br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**')
 
 ggsave(here::here("plots", glue::glue("corona_heat_trend_latest.pdf")),
        width = fig_width, height = fig_height + .5, device = cairo_pdf)
@@ -948,7 +970,7 @@ df %>%
                   label = lab_daily),
               family = "Overpass",
               color = "grey20",
-              size = 1.8,
+              size = 1.7,
               hjust = .5) +
     geom_text(data = df %>% filter(rel == 1),
               aes(country,
@@ -956,7 +978,7 @@ df %>%
                   label = lab_daily),
               family = "Overpass",
               fontface = "bold",
-              size = 1.8,
+              size = 1.7,
               hjust = .5) +
     geom_text(data = df_labs,
               aes(country,
@@ -968,10 +990,10 @@ df %>%
               fontface = "bold",
               size = 3.7,
               hjust = 0) +
-    coord_flip() +
+    coord_flip(clip = "off") +
     scale_x_discrete(expand = c(.001, 0.01)) +
     scale_y_continuous(expand = c(.001, 0.01),
-                       limits = c(40.2, latest_day+ 8.2),
+                       limits = c(40.2, latest_day + 7),
                        sec.axis = dup_axis(),
                        breaks = dates,
                        labels = dates_lab) + 
@@ -997,7 +1019,7 @@ df %>%
                                  barheight = unit(.75, "lines"))) +
     labs(x = NULL, y = NULL, 
          title = "<b style='color:#c93a6e;'>The Worst Days:</b> Which Countries are Currently Experiencing the Highest<br>Number of Confirmed Daily Deaths Due to COVID-19 So Far?",
-         caption = '**The visualization shows countries with at least 100 reported deaths due to the corona virus disease (COVID-19).** The color intensity for each day and country is estimated as the<br>number of deaths on this particular day divided by the highest daily death toll so far. The countries are ranked by time since the latest "worst day" and number of reported daily deaths.<br>* On April 17<sup>th</sup> 2020, officials in Wuhan, China, revised the city´s coronavirus death toll. The deaths have been added proportionally to the daily confirmed deaths of China until that date.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**')
+         caption = '**The visualization shows countries with at least 100 reported deaths due to the corona virus disease (COVID-19).** The color intensity for each day and country is estimated as the<br>number of deaths on this particular day divided by the highest daily death toll so far. The countries are ranked by time since the latest "worst day" and number of reported daily deaths.<br><br><span style="font-size:11pt">* On April 17<sup>th</sup> 2020, officials in Wuhan, China, revised the city´s coronavirus death toll. The deaths have been added proportionally to the daily confirmed deaths of China until that date.<br>^ On June 19<sup>th</sup> the Spanish Ministry of Health has issued a revised death total for Spain. The deaths have been added proportionally to the daily confirmed deaths of Spain until that date.</span><br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**')
 
 ggsave(here::here("plots", glue::glue("corona_heat_trend_latest_compact.pdf")),
        width = fig_width - 4.5, height = fig_height + .5, device = cairo_pdf)
@@ -1049,7 +1071,7 @@ ggplot(df,
                 label = lab_daily),
             family = "Overpass",
             color = "grey20",
-            size = 1.8,
+            size = 1.7,
             hjust = .5) +
   geom_text(data = df %>% filter(rel == 1),
             aes(country,
@@ -1057,7 +1079,7 @@ ggplot(df,
                 label = lab_daily),
             family = "Overpass",
             fontface = "bold",
-            size = 1.8,
+            size = 1.7,
             hjust = .5) +
   geom_text(data = df_labs %>% filter(worse == T),
             aes(country,
@@ -1079,10 +1101,10 @@ ggplot(df,
             fontface = "bold",
             size = 3.7,
             hjust = 0) +
-  coord_flip() +
+  coord_flip(clip = "off") +
   scale_x_discrete(expand = c(.001, 0.01)) +
   scale_y_continuous(expand = c(.001, 0.01),
-                     limits = c(17.8, latest_day + 8.2),
+                     limits = c(17.8, latest_day + 7),
                      sec.axis = dup_axis(),
                      breaks = dates,
                      labels = dates_lab) + 
@@ -1108,7 +1130,7 @@ ggplot(df,
                                barheight = unit(.75, "lines"))) +
   labs(x = NULL, y = NULL, 
        title = "<b style='color:#c93a6e;'>The Worst Days:</b> Which Countries are Currently Experiencing the Highest<br>Number of Confirmed Daily Deaths Due to COVID-19 So Far?",
-       caption = '**The visualization shows countries with at least 100 reported deaths due to the corona virus disease (COVID-19).** The color intensity for each day and country is estimated as the<br>number of deaths on this particular day divided by the highest daily death toll so far. The countries are ranked by time since the latest "worst day" and number of reported daily deaths.<br>Days that are better than the day before (i.e. less confirmed daily deaths) are colored in grey to visulize decreasing trends and potential periodicity in the data.<br>* On April 17<sup>th</sup> 2020, officials in Wuhan, China, revised the city´s coronavirus death toll. The deaths have been added proportionally to the daily confirmed deaths of China until that date.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**')
+       caption = '**The visualization shows countries with at least 100 reported deaths due to the corona virus disease (COVID-19).** The color intensity for each day and country is estimated as the<br>number of deaths on this particular day divided by the highest daily death toll so far. The countries are ranked by time since the latest "worst day" and number of reported daily deaths.<br>Days that are better than the day before (i.e. less confirmed daily deaths) are colored in grey to visulize decreasing trends and potential periodicity in the data.<br><br><span style="font-size:11pt">* On April 17<sup>th</sup> 2020, officials in Wuhan, China, revised the city´s coronavirus death toll. The deaths have been added proportionally to the daily confirmed deaths of China until that date.<br>^ On June 19<sup>th</sup> the Spanish Ministry of Health has issued a revised death total for Spain. The deaths have been added proportionally to the daily confirmed deaths of Spain until that date.</span><br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**')
 
 ggsave(here::here("plots", glue::glue("corona_heat_trend_latest_grey.pdf")),
        width = fig_width, height = fig_height + .5, device = cairo_pdf)
