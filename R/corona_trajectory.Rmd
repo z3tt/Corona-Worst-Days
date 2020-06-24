@@ -86,17 +86,18 @@ df_corona_days <-
   arrange(country, yday) %>% 
   mutate(
     daily = deaths - lag(deaths),
-    daily = if_else(is.na(daily), deaths, daily)
+    daily = if_else(is.na(daily), deaths, daily),
+    daily = if_else(daily < 0, 0, daily)
   ) %>% 
   ungroup() %>% 
   filter(yday >= min(yday[which(daily > 0)]) - 6) %>% 
   mutate(
-    #daily = if_else(daily <= 0, NA_real_, daily),
     country = case_when(
       country == "US" ~ "United States",
       country == "Korea, South" ~ "South Korea",
       country == "Bosnia and Herzegovina" ~ "Bosnia–Herzegovina",
       country == "China" ~ "China*",
+      country == "Spain" ~ "Spain^",
       country == "Congo (Kinshasa)" ~ "DR Congo",
       country == "Congo (Brazzaville)" ~ "Congo-Brazzaville",
       TRUE ~ country
@@ -198,11 +199,11 @@ latest_day <- max(df_corona_roll$yday)
 latest_rel <- max(df_corona_roll$day_rel)
 
 fig_width = 29
-fig_height = 26.5
+fig_height = 23.5
 
-subtitle_lab <- "<b>Each panel shows the trajectory of confirmed deaths due to COVID-19 as percentage of daily deaths relative to the <i style='color:#c93a6e;'>worst day so far</i> for countries with at least 100 reported deaths.</b><span style='font-size:18pt;'><br><br>For each day, starting with the date of first reported death, the 7-day rolling average of confimed deaths per day is divided by the <b style='color:#c93a6e;'>highest average number of daily deaths so far defined as 100%</b>.<br>The text labels show the day of the first cofirmed death due to COVID-19 and the overall death toll per country.</span>"
+subtitle_lab <- "<b>Each panel shows the trajectory of confirmed deaths due to COVID-19 as percentage of daily deaths relative to the <i style='color:#c93a6e;'>worst day so far</i> for countries with at least 200 reported deaths.</b><span style='font-size:18pt;'><br><br>For each day, starting with the date of first reported death, the 7-day rolling average of confimed deaths per day is divided by the <b style='color:#c93a6e;'>highest average number of daily deaths so far defined as 100%</b>.<br>The text labels show the day of the first cofirmed death due to COVID-19 and the overall death toll per country.</span>"
 
-caption_lab <- "Note: Charts contain all confirmed deaths due to COVID-19 from January 22<sup>nd</sup> to June 21<sup>st</sup> 2020 for countries with 100 or more deaths.<br>* The deaths reported on April 17<sup>th</sup> in Wuhan, China, have been added proportionally to the confirmed daily deaths until that date.<br>^ On June 19<sup>th</sup> the Spanish Ministry of Health has issued a revised death total for Spain. The deaths have been added proportionally to the daily confirmed deaths of Spain until that date.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**"
+caption_lab <- "Note: Charts contain all confirmed deaths due to COVID-19 from January 22<sup>nd</sup> to June 21<sup>st</sup> 2020 for countries with 200 or more deaths.<br>* The deaths reported on April 17<sup>th</sup> in Wuhan, China, have been added proportionally to the confirmed daily deaths until that date.<br>^ The deaths reported on June 19<sup>th</sup> in Spain have been added proportionally to the daily confirmed deathsuntil that date.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**"
 
 label_col <- colorspace::darken(c("#f2eaa8", "#ffd08e", "#ffa679", "#f67b77", "#e15383"), .05, space = "HLS")
 ```
@@ -210,14 +211,14 @@ label_col <- colorspace::darken(c("#f2eaa8", "#ffd08e", "#ffa679", "#f67b77", "#
 
 ## Facets: Trajectories per Country
 
-### 100+ deaths
+### 200+ deaths
 
 ```{r facets-plot, fig.width = fig_width, fig.height = fig_height}
-## only countries with more than 100 or more confirmed deaths
+## only countries with more than 200 or more confirmed deaths
 dff <- 
   df_corona_roll %>% 
   filter(
-    sum >= 100, 
+    sum >= 200, 
     country != "Worldwide"
   ) %>% 
   mutate(country = factor(country)) %>% 
@@ -229,13 +230,13 @@ dff <-
     lab_worst = if_else(as.numeric(country) == 1,
                         "Maximum daily\naverage so far",
                         NA_character_),
-    xend = if_else(as.numeric(country) == 1, day_rel - 55, NA_real_),
-    yend = if_else(as.numeric(country) == 1, .825, NA_real_)
+    xend = if_else(as.numeric(country) == 1, day_rel - 65, NA_real_),
+    yend = if_else(as.numeric(country) == 1, .75, NA_real_)
     # lab_worst = if_else(country == "Algeria", 
     #                     "Maximum daily\naverage so far", 
     #                     NA_character_),
     # xend = if_else(country == "Algeria", day_rel + 55, NA_real_),
-    # yend = if_else(country == "Algeria", .825, NA_real_)
+    # yend = if_else(country == "Algeria", .75, NA_real_)
   )
 
 f <- 
@@ -296,7 +297,7 @@ f +
              fontface = "bold",
              label.padding = unit(0.2, "lines"),
              hjust = 0,
-             nudge_x = 5,
+             nudge_x = 5.5,
              lineheight = .9) +
   geom_label(data = dff %>% filter(yday == latest_day & country == "China*"),
              aes(label = lab_sum),
@@ -343,7 +344,7 @@ f +
                color = "#e15383",
                size = .6) +
   geom_label(data = dff %>% filter(rel == 1),
-             aes(xend, .95, label = lab_worst),
+             aes(xend, .9, label = lab_worst),
              size = 4.5,
              family = "Overpass",
              fontface = "bold",
@@ -355,12 +356,12 @@ f +
        title = "<b style='color:#c93a6e;'>The Worst Days:</b> Peaks in Confirmed Daily Deaths Due to COVID-19 So Far",
        subtitle = subtitle_lab,
        caption = caption_lab) +
-  theme(axis.text.y = element_text(colour = label_col, face = "bold"),
-        axis.title.x = element_text(hjust = .5),
-        plot.caption = element_markdown(margin = margin(t = 45, r = 50)))
-        #axis.title.x = element_text(hjust = 0),
-        #plot.caption = element_markdown(margin = margin(t = -120, r = 50)),
-        #plot.margin = margin(20, 30, -10, 30)) 
+  theme(#axis.text.y = element_text(colour = label_col, face = "bold"),
+        #axis.title.x = element_text(hjust = .5),
+        #plot.caption = element_markdown(margin = margin(t = 45, r = 50)))
+        axis.title.x = element_text(hjust = 0),
+        plot.caption = element_markdown(margin = margin(t = -120, r = 50)),
+        plot.margin = margin(20, 30, -10, 30)) 
 
 ggsave(here::here("plots", "corona_trajectory_facet.pdf"),
        width = fig_width, height = fig_height, device = cairo_pdf)
@@ -369,6 +370,7 @@ setwd(here::here("plots"))
 pdf_convert(pdf = here::here("plots", "corona_trajectory_facet.pdf"), 
               format = "png", dpi = 250)
 ```
+
 
 ### 500+ deaths
 
@@ -390,7 +392,7 @@ dff <-
                         "Maximum daily\naverage so far",
                         NA_character_),
     xend = if_else(as.numeric(country) == 1, day_rel - 55, NA_real_),
-    yend = if_else(as.numeric(country) == 1, .825, NA_real_)
+    yend = if_else(as.numeric(country) == 1, .75, NA_real_)
   )
 
 f <- 
@@ -490,7 +492,7 @@ f +
                color = "#e15383",
                size = .6) +
   geom_label(data = dff %>% filter(rel == 1),
-             aes(xend, .95, label = lab_worst),
+             aes(xend, .9, label = lab_worst),
              size = 4.5,
              family = "Overpass",
              fontface = "bold",
@@ -501,7 +503,7 @@ f +
        y = "COVID-19 death cases relative to each country's highest average daily death toll so far", 
        title = "<b style='color:#c93a6e;'>The Worst Days:</b> Peaks in Confirmed Daily Deaths Due to COVID-19 So Far",
        subtitle = "<b>Each panel shows the trajectory of confirmed deaths due to COVID-19 as percentage of daily deaths relative to the <i style='color:#c93a6e;'>worst day so far</i> for countries with at least 500 reported deaths.</b><span style='font-size:18pt;'><br><br>For each day, starting with the date of first reported death, the 7-day rolling average of confimed deaths per day is divided by the <b style='color:#c93a6e;'>highest average number of daily deaths so far defined as 100%</b>.<br>The text labels show the day of the first cofirmed death due to COVID-19 and the overall death toll per country.</span>",
-       caption = "Note: Charts contain all confirmed deaths due to COVID-19 from January 22<sup>nd</sup> to June 21<sup>st</sup> 2020 for countries with 500 or more deaths.<br>* The deaths reported on April 17<sup>th</sup> in Wuhan, China, have been added proportionally to the confirmed daily deaths until that date.<br>^ On June 19<sup>th</sup> the Spanish Ministry of Health has issued a revised death total for Spain. The deaths have been added proportionally to the daily confirmed deaths of Spain until that date.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**") +
+       caption = "Note: Charts contain all confirmed deaths due to COVID-19 from January 22<sup>nd</sup> to June 21<sup>st</sup> 2020 for countries with 500 or more deaths.<br>* The deaths reported on April 17<sup>th</sup> in Wuhan, China, have been added proportionally to the confirmed daily deaths until that date.<br>^ The deaths reported on June 19<sup>th</sup> in Spain have been added proportionally to the daily confirmed deathsuntil that date.<br><br>**Visualization: Cédric Scherer  •  Data: Johns Hopkins University Center for Systems Science and Engineering (CSSE) via datahub.io**") +
   theme(axis.text.x = element_text(size = 12),
         axis.text.y = element_text(colour = label_col, face = "bold"),
         axis.title.x = element_text(hjust = .5),
@@ -511,7 +513,7 @@ f +
         #plot.margin = margin(20, 30, -10, 30)) 
 
 ggsave(here::here("plots", "corona_trajectory_facet_500.pdf"),
-       width = fig_width, height = fig_height - 3.2, device = cairo_pdf)
+       width = fig_width, height = fig_height - .7, device = cairo_pdf)
 
 setwd(here::here("plots"))
 pdf_convert(pdf = here::here("plots", "corona_trajectory_facet_500.pdf"), 
@@ -525,7 +527,7 @@ pdf_convert(pdf = here::here("plots", "corona_trajectory_facet_500.pdf"),
 dfa <- 
   df_corona_roll %>% 
   filter(
-    sum >= 100, 
+    sum >= 200, 
     country != "Worldwide"
   ) %>% 
   group_by(country) %>% 
@@ -536,7 +538,7 @@ dfa <-
 for(i in first_day:latest_day) {
   print(i)
   
-  ## only countries with more than 100 or more confirmed deaths
+  ## only countries with more than 200 or more confirmed deaths
   df <-
     dfa %>% 
     filter(yday <= i) %>% 

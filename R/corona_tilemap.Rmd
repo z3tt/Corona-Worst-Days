@@ -74,7 +74,8 @@ df_corona_days <-
   arrange(country, yday) %>% 
   mutate(
     daily = deaths - lag(deaths),
-    daily = if_else(is.na(daily), deaths, daily)
+    daily = if_else(is.na(daily), deaths, daily),
+    daily = if_else(daily < 0, 0, daily)
   ) %>% 
   ungroup() %>% 
   filter(yday >= min(yday[which(daily > 0)]) - 6) %>% 
@@ -85,6 +86,7 @@ df_corona_days <-
       country == "Korea, South" ~ "South Korea",
       country == "Bosnia and Herzegovina" ~ "Bosnia & Herzegovina",
       country == "China" ~ "China*",
+      country == "Spain" ~ "Spain^",
       country == "Congo (Kinshasa)" ~ "DR Congo",
       country == "Congo (Brazzaville)" ~ "Congo-Brazzaville",
       TRUE ~ country
@@ -158,6 +160,7 @@ df_corona_roll <-
   bind_rows(df_corona_world) %>% 
   bind_rows(df_corona_china_zeros) %>% 
   bind_rows(df_corona_china_fix) %>% 
+  bind_rows(df_corona_spain_fix) %>% 
   arrange(country, date) %>% 
   group_by(country) %>% 
   mutate(
