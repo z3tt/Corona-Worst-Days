@@ -194,6 +194,7 @@ df_dates <-
                      ymd("2020-05-01"),
                      ymd("2020-05-15"),
                      ymd("2020-06-01"),
+                     ymd("2020-06-15"),
                      max(date, na.rm = T))) %>% 
   group_by(date, yday) %>% 
   summarize(label = unique(glue::glue("{month(date, label = T)} {day(date)}")))
@@ -396,7 +397,7 @@ pdfs <- list.files(here::here("plots", "series_heat_sum"), pattern = "*.pdf")
 
 for(pdf in pdfs) {
   pdf_convert(pdf = here::here("plots", "series_heat_sum", pdf), 
-              format = "png", dpi = 120)
+              format = "png", dpi = 100)
 }
 
 ## convert png's to gif
@@ -594,7 +595,7 @@ pdfs <- list.files(here::here("plots", "series_heat_begin"), pattern = "*.pdf")
 
 for(pdf in pdfs) {
   pdf_convert(pdf = here::here("plots", "series_heat_begin", pdf), 
-              format = "png", dpi = 120)
+              format = "png", dpi = 100)
 }
 
 ## convert png's to gif
